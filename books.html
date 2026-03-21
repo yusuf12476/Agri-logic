@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Farm Bookkeeping</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(82,183,136,0.1);border-color:rgba(82,183,136,0.25);color:var(--green)">📒 Books</div><h2>Farm <em>Bookkeeping</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+  <button class="btn btn-green btn-sm" onclick="openModal('income')">+ Add Income</button>
+  <button class="btn btn-sm btn-danger" onclick="openModal('expense')">+ Add Expense</button>
+  <div class="ftabs"><div class="ftab active" id="bk-all" onclick="filterBooks('all')">All</div><div class="ftab" id="bk-income" onclick="filterBooks('income')">Income</div><div class="ftab" id="bk-expense" onclick="filterBooks('expense')">Expenses</div></div>
+  <div class="sw" style="min-width:140px"><select id="monthFilter" onchange="renderBooks()">
+    <option value="">All Time</option>
+    <option value="2026-03">Mar 2026</option><option value="2026-02">Feb 2026</option><option value="2026-01">Jan 2026</option>
+    <option value="2025-12">Dec 2025</option><option value="2025-11">Nov 2025</option><option value="2025-10">Oct 2025</option>
+    <option value="2025-09">Sep 2025</option><option value="2025-08">Aug 2025</option><option value="2025-07">Jul 2025</option>
+  </select></div>
+  <div class="sw" style="min-width:90px"><select id="bkCurrency" onchange="renderBooks()"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div>
+</div>
+<div class="stat-strip" id="bkStats">
+  <div class="scard" data-icon="💵"><div class="scard-label">Total Income</div><div class="scard-value" id="bk-inc" style="color:#2ecc71">0</div></div>
+  <div class="scard" data-icon="📊"><div class="scard-label">Total Expenses</div><div class="scard-value" id="bk-exp" style="color:#e74c3c">0</div></div>
+  <div class="scard" data-icon="💰"><div class="scard-label">Net Profit</div><div class="scard-value" id="bk-net">0</div></div>
+  <div class="scard" data-icon="📋"><div class="scard-label">Transactions</div><div class="scard-value" id="bk-count" style="color:var(--blue)">0</div></div>
+</div>
+<div style="margin-top:4px;display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px">
+  <button class="btn btn-ghost btn-sm" onclick="shareMonthlyWhatsApp()">📱 Share Monthly Report on WhatsApp</button>
+</div>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th><th>Notes</th><th></th></tr></thead><tbody id="bkBody"></tbody></table></div>
+<div class="hist-empty" id="bkEmpty">No transactions yet. Start by adding income or expenses.</div>
+<div class="modal-overlay" id="bookModal">
+  <div class="modal"><h3 id="bkModalTitle">Add Transaction</h3><p class="modal-sub">Record an income or expense entry.</p>
+    <div class="modal-fields">
+      <input type="date" id="bk-date"><input type="text" id="bk-desc" placeholder="Description (e.g. Sold 100 broilers)">
+      <div class="sw"><select id="bk-cat"><option value="sales">🐔 Livestock Sales</option><option value="crops">🌾 Crop Sales</option><option value="milk">🥛 Milk Sales</option><option value="eggs">🥚 Egg Sales</option><option value="byproduct">♻️ By-products</option><option value="grant">🏛️ Grant/Subsidy</option><option value="loan">💳 Loan Received</option><option value="feed">🌾 Feed Purchase</option><option value="medicine">💊 Medicine/Vet</option><option value="chicks">🐣 Chicks/Stock</option><option value="labour">👷 Labour/Wages</option><option value="equipment">🔧 Equipment</option><option value="transport">🚛 Transport</option><option value="utilities">💡 Utilities</option><option value="loan-repay">💳 Loan Repayment</option><option value="other">📋 Other</option></select></div>
+      <input type="number" id="bk-amount" placeholder="Amount" step="0.01" min="0">
+      <input type="text" id="bk-ref" placeholder="Reference / Receipt no. (optional)">
+      <input type="text" id="bk-notes" placeholder="Notes (optional)">
+    </div>
+    <input type="hidden" id="bk-type"><input type="hidden" id="bk-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('bookModal').classList.remove('open')">Cancel</button><button class="modal-save" id="bkSaveBtn" onclick="saveEntry()">Save Entry</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+let bkFilter='all';
+function openModal(type){
+  document.getElementById('bk-type').value=type;
+  document.getElementById('bkModalTitle').textContent=type==='income'?'Add Income':'Add Expense';
+  document.getElementById('bkSaveBtn').style.background=type==='income'?'linear-gradient(135deg,#1a6b3a,#27ae60)':'linear-gradient(135deg,#8b0000,#c0392b)';
+  document.getElementById('bk-date').value=today();
+  ['bk-desc','bk-amount','bk-ref','bk-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('bk-edit-id').value='';
+  document.getElementById('bookModal').classList.add('open');
+}
+function saveEntry(){
+  const desc=document.getElementById('bk-desc').value.trim();const amount=parseFloat(document.getElementById('bk-amount').value)||0;const type=document.getElementById('bk-type').value;
+  if(!desc||!amount){alert('Please enter description and amount.');return;}
+  const editId=document.getElementById('bk-edit-id').value;
+  const entry={id:editId||Date.now().toString(),date:document.getElementById('bk-date').value,description:desc,category:document.getElementById('bk-cat').value,type,amount,ref:document.getElementById('bk-ref').value.trim(),notes:document.getElementById('bk-notes').value.trim()};
+  let books=DS('books');if(editId){const idx=books.findIndex(x=>x.id===editId);if(idx>=0)books[idx]=entry;else books.unshift(entry);}else{books.unshift(entry);}
+  save('books',books);document.getElementById('bookModal').classList.remove('open');renderBooks();
+}
+function deleteEntry(id){if(!confirm('Delete this entry?'))return;save('books',DS('books').filter(x=>x.id!==id));renderBooks();}
+function filterBooks(f){bkFilter=f;['all','income','expense'].forEach(x=>document.getElementById('bk-'+x)?.classList.toggle('active',x===f));renderBooks();}
+function renderBooks(){
+  const monthF=document.getElementById('monthFilter').value;
+  let h=DS('books');
+  if(bkFilter!=='all')h=h.filter(b=>b.type===bkFilter);
+  if(monthF)h=h.filter(b=>(b.date||'').startsWith(monthF));
+  const income=h.filter(b=>b.type==='income').reduce((s,b)=>s+(b.amount||0),0);
+  const expense=h.filter(b=>b.type==='expense').reduce((s,b)=>s+(b.amount||0),0);
+  const net=income-expense;
+  document.getElementById('bk-inc').textContent=fmtI(income);
+  document.getElementById('bk-exp').textContent=fmtI(expense);
+  const netEl=document.getElementById('bk-net');netEl.textContent=fmtI(Math.abs(net));netEl.style.color=net>=0?'#2ecc71':'#e74c3c';
+  document.getElementById('bk-count').textContent=h.length;
+  const body=document.getElementById('bkBody');const empty=document.getElementById('bkEmpty');
+  if(!h.length){body.innerHTML='';empty.style.display='block';return;}empty.style.display='none';
+  body.innerHTML=h.map(e=>`<tr><td>${e.date}</td><td style="font-weight:500">${escHtml(e.description)}</td><td style="font-size:11px;color:var(--muted)">${e.category||'—'}</td><td><span style="padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;background:${e.type==='income'?'rgba(39,174,96,0.12)':'rgba(192,57,43,0.12)'};color:${e.type==='income'?'#2ecc71':'#e74c3c'}">${e.type.toUpperCase()}</span></td><td style="font-weight:600;color:${e.type==='income'?'#2ecc71':'#e74c3c'}">${e.type==='income'?'+':'-'}${fmtI(e.amount)}</td><td style="font-size:11px;color:var(--muted)">${escHtml(e.notes||'—')}</td><td><div style="display:flex;gap:4px"><button onclick="editEntry('${e.id}')" style="padding:3px 8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;font-size:11px">Edit</button><button onclick="deleteEntry('${e.id}')" style="padding:3px 8px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:5px;color:#e74c3c;cursor:pointer;font-size:11px">✕</button></div></td></tr>`).join('');
+}
+function editEntry(id){const e=DS('books').find(x=>x.id===id);if(!e)return;openModal(e.type);document.getElementById('bk-date').value=e.date;document.getElementById('bk-desc').value=e.description;document.getElementById('bk-cat').value=e.category||'other';document.getElementById('bk-amount').value=e.amount;document.getElementById('bk-ref').value=e.ref||'';document.getElementById('bk-notes').value=e.notes||'';document.getElementById('bk-edit-id').value=e.id;}
+function shareMonthlyWhatsApp(){
+  const h=DS('books').filter(b=>(b.date||'').startsWith(thisMonth()));
+  const income=h.filter(b=>b.type==='income').reduce((s,b)=>s+(b.amount||0),0);
+  const expense=h.filter(b=>b.type==='expense').reduce((s,b)=>s+(b.amount||0),0);
+  const p=getProfile();
+  shareWhatsApp(`📒 ${p.name||'Farm'} Monthly Report — ${new Date().toLocaleDateString('en',{month:'long',year:'numeric'})}
+
+💵 Income: ${fmtI(income)}
+📊 Expenses: ${fmtI(expense)}
+💰 Net Profit: ${fmtI(income-expense)}
+
+Powered by AgriLogic`);
+}
+renderBooks();
+
+initShared('books');
+</script></body></html>

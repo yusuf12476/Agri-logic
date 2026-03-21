@@ -1,0 +1,37 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Land Parcel Manager</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(124,92,58,0.12);border-color:rgba(124,92,58,0.28);color:#d4956a">🗺️ Land</div><h2>Land Parcel <em>Manager</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px"><button class="btn btn-green btn-sm" onclick="openModal()">+ Add Parcel</button></div>
+<div class="card-grid" id="landGrid"></div>
+<div class="hist-empty" id="landEmpty">No land parcels yet. Add your first field or plot.</div>
+<div class="modal-overlay" id="landModal">
+  <div class="modal"><h3 id="landModalTitle">Add Land Parcel</h3><p class="modal-sub">Register a field, plot or growing area.</p>
+    <div class="modal-fields">
+      <input type="text" id="ln-name" placeholder="Parcel name (e.g. North Field, Plot B)">
+      <div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><input type="number" id="ln-size" placeholder="Size" step="0.01"><div class="sw"><select id="ln-unit"><option>Acres</option><option>Hectares</option><option>Plots (40x80)</option><option>Square metres</option></select></div></div>
+      <div class="sw"><select id="ln-soil"><option value="loam">Loam</option><option value="clay">Clay</option><option value="sandy">Sandy</option><option value="volcanic">Volcanic/Red</option><option value="black-cotton">Black Cotton</option></select></div>
+      <input type="text" id="ln-current" placeholder="🌱 Current crop (if any)">
+      <input type="text" id="ln-prev" placeholder="🌾 Previous crop">
+      <div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><input type="date" id="ln-limed" placeholder="Last limed"><input type="date" id="ln-fertilized" placeholder="Last fertilized"></div>
+      <input type="text" id="ln-location" placeholder="📍 GPS / location description">
+      <input type="text" id="ln-notes" placeholder="Notes">
+    </div>
+    <input type="hidden" id="ln-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('landModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveLand()">Save Parcel</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+function openModal(id){const modal=document.getElementById('landModal');document.getElementById('landModalTitle').textContent=id?'Edit Parcel':'Add Land Parcel';modal.dataset.editId=id||'';if(id){const l=DS('land').find(x=>x.id===id);if(l){document.getElementById('ln-name').value=l.name||'';document.getElementById('ln-size').value=l.size||'';document.getElementById('ln-unit').value=l.unit||'Acres';document.getElementById('ln-soil').value=l.soil||'loam';document.getElementById('ln-current').value=l.current_crop||'';document.getElementById('ln-prev').value=l.prev_crop||'';document.getElementById('ln-limed').value=l.last_limed||'';document.getElementById('ln-fertilized').value=l.last_fertilized||'';document.getElementById('ln-location').value=l.location||'';document.getElementById('ln-notes').value=l.notes||'';}}else{modal.querySelectorAll('input,select').forEach(el=>el.value='');}modal.classList.add('open');}
+function saveLand(){const name=document.getElementById('ln-name').value.trim();if(!name){alert('Please enter a parcel name.');return;}const editId=document.getElementById('landModal').dataset.editId;const parcel={id:editId||Date.now().toString(),name,size:parseFloat(document.getElementById('ln-size').value)||0,unit:document.getElementById('ln-unit').value,soil:document.getElementById('ln-soil').value,current_crop:document.getElementById('ln-current').value.trim(),prev_crop:document.getElementById('ln-prev').value.trim(),last_limed:document.getElementById('ln-limed').value,last_fertilized:document.getElementById('ln-fertilized').value,location:document.getElementById('ln-location').value.trim(),notes:document.getElementById('ln-notes').value.trim()};let land=DS('land');if(editId){const idx=land.findIndex(x=>x.id===editId);if(idx>=0)land[idx]=parcel;else land.unshift(parcel);}else{land.unshift(parcel);}save('land',land);document.getElementById('landModal').classList.remove('open');renderLand();}
+function deleteLand(id){if(!confirm('Delete this parcel?'))return;save('land',DS('land').filter(x=>x.id!==id));renderLand();}
+function renderLand(){const h=DS('land');const grid=document.getElementById('landGrid');const empty=document.getElementById('landEmpty');if(!h.length){grid.innerHTML='';empty.style.display='block';return;}empty.style.display='none';const soilEmoji={loam:'🟫',clay:'🪨',sandy:'🟡',volcanic:'🔴','black-cotton':'⬛'};grid.innerHTML=h.map(p=>`<div class="data-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-size:26px">🗺️</div><div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-top:4px">${escHtml(p.name)}</div><div style="font-size:11px;color:var(--muted)">${p.size||'?'} ${p.unit||'acres'}</div></div>${p.current_crop?`<span style="padding:3px 9px;border-radius:10px;font-size:10px;font-weight:600;color:var(--green);background:rgba(82,183,136,0.1)">🌱 ${escHtml(p.current_crop)}</span>`:''}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;font-size:11px;color:var(--muted)">${p.soil?`<div>${soilEmoji[p.soil]||'🌍'} <span style="color:var(--cream)">${p.soil}</span></div>`:''}${p.prev_crop?`<div>⟳ <span style="color:var(--cream)">${escHtml(p.prev_crop)}</span></div>`:''}${p.last_fertilized?`<div>🧪 <span style="color:var(--cream)">Fert: ${p.last_fertilized}</span></div>`:''}${p.location?`<div>📍 <span style="color:var(--cream)">${escHtml(p.location)}</span></div>`:''}</div>${p.notes?`<div style="font-size:11px;color:var(--muted);margin-bottom:9px">${escHtml(p.notes)}</div>`:''}<div style="display:flex;gap:5px"><button onclick="openModal('${p.id}')" style="flex:1;padding:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Edit</button><button onclick="deleteLand('${p.id}')" style="padding:6px 9px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:7px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button></div></div>`).join('');}
+renderLand();
+
+initShared('land');
+</script></body></html>

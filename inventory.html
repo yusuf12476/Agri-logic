@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Inventory & Stock Tracker</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(46,134,171,0.1);border-color:rgba(46,134,171,0.25);color:#54c6eb">📦 Inventory</div><h2>Inventory & <em>Stock Tracker</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+  <button class="btn btn-green btn-sm" onclick="openModal()">+ Add Item</button>
+  <div class="sw" style="min-width:150px"><select id="invFilter" onchange="renderInv()"><option value="">All Categories</option><option>Feed</option><option>Medicine</option><option>Vaccines</option><option>Equipment</option><option>Chemicals</option><option>Seeds</option><option>Fuel</option><option>Other</option></select></div>
+</div>
+<div id="invAlerts" style="margin-bottom:12px"></div>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Item</th><th>Category</th><th>In Stock</th><th>Unit</th><th>Low Alert</th><th>Cost/Unit</th><th>Expires</th><th></th></tr></thead><tbody id="invBody"></tbody></table></div>
+<div class="hist-empty" id="invEmpty">No inventory items yet.</div>
+<div class="modal-overlay" id="invModal">
+  <div class="modal"><h3 id="invModalTitle">Add Inventory Item</h3><p class="modal-sub">Track stock with low-stock alerts.</p>
+    <div class="modal-fields" style="grid-template-columns:1fr 1fr">
+      <input type="text" id="iv-name" placeholder="Item name" style="grid-column:1/-1">
+      <div class="sw"><select id="iv-cat"><option>Feed</option><option>Medicine</option><option>Vaccines</option><option>Equipment</option><option>Chemicals</option><option>Seeds</option><option>Fuel</option><option>Other</option></select></div>
+      <div class="sw"><select id="iv-unit"><option>Bags</option><option>Litres</option><option>kg</option><option>Pieces</option><option>Bottles</option><option>Boxes</option><option>Vials</option></select></div>
+      <input type="number" id="iv-qty" placeholder="Current quantity" step="0.1">
+      <input type="number" id="iv-alert" placeholder="Low stock alert at" step="0.1">
+      <input type="number" id="iv-cost" placeholder="Cost per unit" step="0.01">
+      <input type="date" id="iv-expiry" placeholder="Expiry date">
+      <input type="text" id="iv-supplier" placeholder="Supplier" style="grid-column:1/-1">
+    </div>
+    <input type="hidden" id="iv-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('invModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveItem()">Save Item</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+function openModal(id){
+  const modal=document.getElementById('invModal');
+  document.getElementById('invModalTitle').textContent=id?'Edit Item':'Add Inventory Item';
+  document.getElementById('iv-edit-id').value=id||'';
+  if(id){const item=DS('inventory').find(x=>x.id===id);if(item){['iv-name','iv-cat','iv-unit','iv-qty','iv-alert','iv-cost','iv-expiry','iv-supplier'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=item[k.replace('iv-','')]||'';});}}
+  else{modal.querySelectorAll('input,select').forEach(el=>el.value='');}
+  modal.classList.add('open');
+}
+function saveItem(){const name=document.getElementById('iv-name').value.trim();if(!name){alert('Please enter an item name.');return;}const editId=document.getElementById('iv-edit-id').value;const item={id:editId||Date.now().toString(),name,category:document.getElementById('iv-cat').value,unit:document.getElementById('iv-unit').value,qty:parseFloat(document.getElementById('iv-qty').value)||0,alert:parseFloat(document.getElementById('iv-alert').value)||0,cost:parseFloat(document.getElementById('iv-cost').value)||0,expiry:document.getElementById('iv-expiry').value,supplier:document.getElementById('iv-supplier').value.trim(),updated:new Date().toLocaleDateString()};let inv=DS('inventory');if(editId){const idx=inv.findIndex(x=>x.id===editId);if(idx>=0)inv[idx]=item;else inv.unshift(item);}else{inv.unshift(item);}save('inventory',inv);document.getElementById('invModal').classList.remove('open');renderInv();}
+function adjustQty(id,delta){const inv=DS('inventory');const item=inv.find(x=>x.id===id);if(item){item.qty=Math.max(0,(item.qty||0)+delta);item.updated=new Date().toLocaleDateString();}save('inventory',inv);renderInv();}
+function deleteItem(id){if(!confirm('Remove this item?'))return;save('inventory',DS('inventory').filter(x=>x.id!==id));renderInv();}
+function renderInv(){
+  const filter=document.getElementById('invFilter').value;let h=DS('inventory');if(filter)h=h.filter(x=>x.category===filter);
+  const body=document.getElementById('invBody');const empty=document.getElementById('invEmpty');const alerts=document.getElementById('invAlerts');
+  const lowStock=DS('inventory').filter(x=>x.alert>0&&x.qty<=x.alert);
+  const expiring=DS('inventory').filter(x=>{if(!x.expiry)return false;return Math.ceil((new Date(x.expiry)-new Date())/86400000)<=30;});
+  let alertHtml='';
+  if(lowStock.length)alertHtml+=`<div class="alert alert-danger">⚠️ <strong>Low stock:</strong> ${lowStock.map(x=>x.name+'('+x.qty+' '+x.unit+')').join(', ')}</div>`;
+  if(expiring.length)alertHtml+=`<div class="alert alert-warn">📅 <strong>Expiring soon:</strong> ${expiring.map(x=>x.name+' ('+x.expiry+')').join(', ')}</div>`;
+  alerts.innerHTML=alertHtml;
+  if(!h.length){body.innerHTML='';empty.style.display='block';return;}empty.style.display='none';
+  body.innerHTML=h.map(item=>{const isLow=item.alert>0&&item.qty<=item.alert;const isExp=item.expiry&&Math.ceil((new Date(item.expiry)-new Date())/86400000)<=30;return`<tr style="${isLow?'background:rgba(192,57,43,0.03)':''}"><td style="font-weight:500">${escHtml(item.name)}${isLow?'<span style="margin-left:5px;font-size:9px;color:#e74c3c;background:rgba(192,57,43,0.1);padding:2px 6px;border-radius:4px">LOW</span>':''}</td><td style="font-size:11px;color:var(--muted)">${item.category}</td><td><div style="display:flex;align-items:center;gap:7px"><button onclick="adjustQty('${item.id}',-1)" style="width:22px;height:22px;border-radius:5px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--cream);cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif">−</button><span style="font-size:13px;font-weight:600;color:${isLow?'#e74c3c':'var(--cream)'};min-width:32px;text-align:center">${item.qty}</span><button onclick="adjustQty('${item.id}',1)" style="width:22px;height:22px;border-radius:5px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--cream);cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif">+</button></div></td><td style="font-size:11px;color:var(--muted)">${item.unit}</td><td style="font-size:11px;color:var(--muted)">${item.alert||'—'}</td><td style="font-size:11px;color:var(--muted)">${item.cost||'—'}</td><td style="font-size:11px;color:${isExp?'var(--warn)':'var(--muted)'}">${item.expiry||'—'}</td><td><div style="display:flex;gap:4px"><button onclick="openModal('${item.id}')" style="padding:4px 9px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Edit</button><button onclick="deleteItem('${item.id}')" style="padding:4px 9px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:6px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button></div></td></tr>`;}).join('');
+}
+renderInv();
+
+initShared('inventory');
+</script></body></html>

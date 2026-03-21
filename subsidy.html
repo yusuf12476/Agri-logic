@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Government Subsidy & Grant Finder</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(82,183,136,0.1);border-color:rgba(82,183,136,0.25);color:var(--green)">🏛️ Subsidies</div><h2>Government Subsidy & Grant <em>Finder</em></h2></div>
+
+<div class="form-card"><div class="card-head"><span class="card-icon">🏛️</span><h3>Your Farm Profile</h3></div><div class="card-body">
+  <div class="g2"><div class="field-group"><label class="field-label">Country</label><div class="sw"><select id="sub-country"><option>Kenya</option><option>Tanzania</option><option>Uganda</option><option>Ethiopia</option><option>Rwanda</option><option>Burundi</option><option>DRC</option></select></div></div><div class="field-group"><label class="field-label">County / Region</label><input type="text" id="sub-region" placeholder="e.g. Nakuru County"></div></div>
+  <div class="g2"><div class="field-group"><label class="field-label">Farm Type</label><div class="sw"><select id="sub-type"><option value="livestock">Livestock</option><option value="crops">Crop Farming</option><option value="mixed">Mixed</option><option value="aquaculture">Aquaculture / Fish</option><option value="dairy">Dairy</option><option value="poultry">Poultry</option></select></div></div><div class="field-group"><label class="field-label">Farm Size (acres)</label><input type="number" id="sub-size" placeholder="e.g. 5" step="0.1"></div></div>
+  <div class="g2"><div class="field-group"><label class="field-label">Farmer Category</label><div class="sw"><select id="sub-category"><option value="smallholder">Smallholder</option><option value="youth">Youth Farmer (under 35)</option><option value="women">Women Farmer</option><option value="cooperative">Cooperative Member</option><option value="commercial">Commercial Farmer</option></select></div></div><div class="field-group"><label class="field-label">Annual Farm Income</label><div class="sw"><select id="sub-income"><option value="low">Under KES 100,000</option><option value="medium">KES 100,000 – 500,000</option><option value="high">Over KES 500,000</option></select></div></div></div>
+  <div class="field-group"><label class="field-label">What are you looking for?</label><div class="sw"><select id="sub-need"><option value="all">All Available Programmes</option><option value="inputs">Farm Inputs (seeds, fertilizer)</option><option value="equipment">Equipment & Machinery</option><option value="credit">Credit & Loans</option><option value="training">Training & Extension</option><option value="market">Market Access</option><option value="insurance">Insurance Support</option></select></div></div>
+  <button class="btn btn-green btn-full" id="subBtn" onclick="runSubsidy()">🏛️ Find My Subsidies & Grants</button>
+</div></div>
+<div class="loading-state" id="loading"><div class="spinner"></div><strong>Searching programmes...</strong><p>AI is finding subsidies available in your area</p></div>
+<div class="result-section" id="result"></div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+async function aiPrompt(prompt, loadId, resultId, btnId, showFn) {
+  document.getElementById(loadId).style.display='block';
+  if(resultId) document.getElementById(resultId).style.display='none';
+  if(btnId) document.getElementById(btnId).disabled=true;
+  try { const resp=await callAI(prompt); const r=parseAI(resp); if(!r) throw new Error('parse'); showFn(r); }
+  catch(e) { console.error(e); alert('Error. Please try again.'); }
+  finally { document.getElementById(loadId).style.display='none'; if(btnId) document.getElementById(btnId).disabled=false; }
+}
+
+function runSubsidy(){
+  const country=document.getElementById('sub-country').value;const region=document.getElementById('sub-region').value.trim();
+  aiPrompt(`You are AgriLogic government programmes expert for East Africa.
+${langNote()}
+Country: ${country}, Region: ${region||'national'}, Farm type: ${document.getElementById('sub-type').value}, Size: ${document.getElementById('sub-size').value||'small'} acres, Category: ${document.getElementById('sub-category').value}, Income level: ${document.getElementById('sub-income').value}, Looking for: ${document.getElementById('sub-need').value}
+List ALL real government subsidies, grants and support programmes available for this farmer in ${country}. Respond ONLY with JSON:
+{"programmes":[{"name":"str","provider":"Ministry/Agency","description":"str","benefit":"str","eligibility":"str","how_to_apply":"str","deadline":"str or Ongoing","contact":"str","url":"str"}],"tips":["tip1","tip2"],"warnings":["w1"],"summary":"str"}`,
+  'loading','result','subBtn',showSubsidy);
+}
+function showSubsidy(r){
+  const el=document.getElementById('result');el.style.display='block';
+  el.innerHTML=`<div style="font-size:13px;color:var(--muted);margin-bottom:14px">${escHtml(r.summary||'')}</div>${(r.programmes||[]).map((p,i)=>`<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(82,183,136,0.1);border-radius:14px;padding:18px 20px;margin-bottom:10px;animation:fadeUp 0.3s ease ${i*0.05}s both"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px"><div><div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--cream)">${escHtml(p.name)}</div><div style="font-size:11px;color:var(--green);margin-top:2px">🏛️ ${escHtml(p.provider)}</div></div><span style="padding:4px 11px;border-radius:12px;font-size:10px;font-weight:600;background:rgba(39,174,96,0.12);color:#2ecc71;border:1px solid rgba(39,174,96,0.2);white-space:nowrap">${escHtml(p.deadline||'Ongoing')}</span></div><div style="font-size:13px;color:rgba(245,240,232,0.85);margin-bottom:10px">${escHtml(p.description)}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;margin-bottom:10px"><div style="background:rgba(212,160,23,0.07);border-radius:8px;padding:9px 11px"><div style="font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Benefit</div><div style="color:var(--gold-light)">${escHtml(p.benefit)}</div></div><div style="background:rgba(82,183,136,0.05);border-radius:8px;padding:9px 11px"><div style="font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Eligibility</div><div style="color:var(--cream)">${escHtml(p.eligibility)}</div></div></div><div style="font-size:12px;color:var(--muted);margin-bottom:5px"><strong style="color:var(--cream)">How to apply:</strong> ${escHtml(p.how_to_apply)}</div>${p.contact&&p.contact!=='N/A'?`<div style="font-size:12px;color:var(--muted);margin-bottom:10px"><strong style="color:var(--cream)">Contact:</strong> ${escHtml(p.contact)}</div>`:''}<div style="display:flex;gap:7px"><button onclick="shareWhatsApp('🏛️ Farm Subsidy: ${p.name.replace(/'/g,'').slice(0,40)}\n${p.benefit}\nApply: ${p.how_to_apply.slice(0,80)}\nPowered by AgriLogic')" style="padding:6px 13px;background:#25D366;border:none;border-radius:7px;color:white;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">📱 Share</button>${p.url&&p.url!=='N/A'&&p.url.startsWith('http')?`<a href="${p.url}" target="_blank" rel="noopener" style="padding:6px 13px;background:rgba(82,183,136,0.1);border:1px solid rgba(82,183,136,0.2);border-radius:7px;color:var(--green);font-size:11px;text-decoration:none">🔗 Apply Online</a>`:''}</div></div>`).join('')}${r.tips?.length?`<div class="rblock good"><h4>💡 Application Tips</h4><ul>${r.tips.map(t=>'<li>'+escHtml(t)+'</li>').join('')}</ul></div>`:''}${r.warnings?.length?`<div class="rblock warn"><h4>⚠️ Warnings</h4><ul>${r.warnings.map(w=>'<li>'+escHtml(w)+'</li>').join('')}</ul></div>`:''}`;
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+initShared('subsidy');
+</script></body></html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriLogic — Smart Planting Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+</head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  <div class="main-content"><div class="page">
+    <div class="page-header">
+      <div class="page-badge" style="background:rgba(46,134,171,0.1);border-color:rgba(46,134,171,0.25);color:#54c6eb">📅 Calendar</div>
+      <h2>Smart Planting <em>Calendar</em></h2>
+    </div>
+
+<div class="fg">
+  <div class="form-card"><div class="card-head"><span class="card-icon">📍</span><h3>Location</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label">Region / County</label><input type="text" id="region" placeholder="e.g. Nakuru, Kilimanjaro"></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Country</label><div class="sw"><select id="country"><option>Kenya</option><option>Tanzania</option><option>Uganda</option><option>Ethiopia</option><option>Rwanda</option><option>Burundi</option><option>DRC</option></select></div></div><div class="field-group"><label class="field-label">Altitude</label><div class="sw"><select id="altitude"><option value="lowland">Lowland (0-1000m)</option><option value="midland" selected>Midland (1000-1800m)</option><option value="highland">Highland (1800m+)</option><option value="arid">Arid/Semi-arid</option></select></div></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Soil Type</label><div class="sw"><select id="soil"><option value="loam">Loam</option><option value="clay">Clay</option><option value="sandy">Sandy</option><option value="volcanic">Volcanic/Red</option><option value="black-cotton">Black Cotton</option></select></div></div><div class="field-group"><label class="field-label">Irrigation</label><div class="sw"><select id="irrigation"><option value="none">Rain-fed only</option><option value="partial">Partial</option><option value="full">Full irrigation</option></select></div></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Season</label><div class="sw"><select id="season"><option value="long-rains">Long Rains (Mar-Jun)</option><option value="short-rains">Short Rains (Oct-Dec)</option><option value="dry-season">Dry Season (Irrigated)</option><option value="year-round">Year-round</option></select></div></div><div class="field-group"><label class="field-label">Goal</label><div class="sw"><select id="goal"><option value="subsistence">Subsistence</option><option value="commercial">Commercial</option><option value="mixed">Mixed</option><option value="export">Export</option></select></div></div></div>
+  </div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">🌱</span><h3>Select Crops</h3></div><div class="card-body">
+    <div class="tags" id="cropChips">
+      <div class="tag" onclick="toggleCrop(this,'Maize')">🌽 Maize</div><div class="tag" onclick="toggleCrop(this,'Beans')">🫘 Beans</div><div class="tag" onclick="toggleCrop(this,'Tomatoes')">🍅 Tomatoes</div><div class="tag" onclick="toggleCrop(this,'Kale (Sukuma Wiki)')">🥬 Sukuma Wiki</div><div class="tag" onclick="toggleCrop(this,'Potatoes')">🥔 Potatoes</div><div class="tag" onclick="toggleCrop(this,'Cassava')">🌿 Cassava</div><div class="tag" onclick="toggleCrop(this,'Sorghum')">🌾 Sorghum</div><div class="tag" onclick="toggleCrop(this,'Groundnuts')">🥜 Groundnuts</div><div class="tag" onclick="toggleCrop(this,'Onions')">🧅 Onions</div><div class="tag" onclick="toggleCrop(this,'Cabbage')">🥦 Cabbage</div><div class="tag" onclick="toggleCrop(this,'Bananas')">🍌 Bananas</div><div class="tag" onclick="toggleCrop(this,'Avocado')">🥑 Avocado</div><div class="tag" onclick="toggleCrop(this,'Coffee')">☕ Coffee</div><div class="tag" onclick="toggleCrop(this,'Tea')">🍵 Tea</div><div class="tag" onclick="toggleCrop(this,'Sunflower')">🌻 Sunflower</div>
+    </div>
+    <div class="field-group"><label class="field-label">Other Crops</label><input type="text" id="customCrops" placeholder="e.g. Watermelon, Pepper"></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Farm Size</label><input type="number" id="farmSize" placeholder="e.g. 2" step="0.1"></div><div class="field-group"><label class="field-label">Unit</label><div class="sw"><select id="farmUnit"><option>Acres</option><option>Hectares</option><option>Plots</option></select></div></div></div>
+  </div></div>
+</div>
+<button class="btn btn-blue btn-full" id="genBtn" onclick="runCalendar()">📅 Generate My Planting Calendar</button>
+<div class="loading-state" id="loading"><div class="spinner" style="border-top-color:#54c6eb"></div><strong>Building calendar...</strong><p>Analysing rainfall patterns for your region</p></div>
+<div class="result-section" id="result">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" id="weatherStrip"></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">📅</span><h3 id="calTitle">12-Month Planting Calendar</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr)" id="monthsGrid"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;padding:11px 16px;border-top:1px solid var(--border);font-size:11px">
+      <div style="display:flex;align-items:center;gap:5px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:#7dde9a"></div>Plant</div>
+      <div style="display:flex;align-items:center;gap:5px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:var(--gold-light)"></div>Growing</div>
+      <div style="display:flex;align-items:center;gap:5px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:#f1948a"></div>Harvest</div>
+      <div style="display:flex;align-items:center;gap:5px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:#54c6eb"></div>Prepare</div>
+    </div>
+  </div>
+  <div id="cropTimelines"></div>
+  <div class="rgrid" id="infoGrid"></div>
+  <div style="margin-top:12px"><button class="btn btn-wa btn-sm" onclick="shareCalWhatsApp()">📱 Share Calendar on WhatsApp</button></div>
+</div>
+<div class="hist-section"><div class="hist-title">📂 Saved Calendars</div><div id="histList"><div class="hist-empty">No calendars yet.</div></div></div>
+
+  </div></div>
+</div>
+<script src="../shared.js"></script>
+<script>
+let calCrops=new Set();
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function toggleCrop(el,crop){if(calCrops.has(crop)){calCrops.delete(crop);el.classList.remove('active');}else{calCrops.add(crop);el.classList.add('active');}}
+function tagStyle(type){const s={plant:'background:rgba(82,183,136,0.2);color:#7dde9a',grow:'background:rgba(212,160,23,0.15);color:var(--gold-light)',harvest:'background:rgba(231,76,60,0.15);color:#f1948a',prepare:'background:rgba(46,134,171,0.15);color:#54c6eb',rain:'background:rgba(52,152,219,0.15);color:#85c1e9',rest:'background:rgba(255,255,255,0.04);color:var(--muted)'};return s[type]||s.rest;}
+let lastCalResult=null,lastCalMeta=null;
+async function runCalendar(){
+  const region=document.getElementById('region').value.trim();
+  const crops=[...calCrops,...document.getElementById('customCrops').value.split(',').map(c=>c.trim()).filter(Boolean)];
+  if(!region){alert('Please enter your region.');return;}
+  if(!crops.length){alert('Please select at least one crop.');return;}
+  document.getElementById('loading').style.display='block';document.getElementById('result').style.display='none';document.getElementById('genBtn').disabled=true;
+  try{
+    const country=document.getElementById('country').value;
+    const resp=await callAI(`You are AgriLogic expert agronomist for East African farmers.\n${langNote()}\nLocation: ${region}, ${country}. Altitude: ${document.getElementById('altitude').value}. Soil: ${document.getElementById('soil').value}. Irrigation: ${document.getElementById('irrigation').value}. Season: ${document.getElementById('season').value}. Goal: ${document.getElementById('goal').value}. Farm size: ${document.getElementById('farmSize').value||'unspecified'} ${document.getElementById('farmUnit').value}. Crops: ${crops.join(', ')}\nRespond ONLY with JSON:\n{"location_summary":"str","climate":{"annual_rainfall_mm":0,"rain_season_1":"str","rain_season_2":"str","avg_temp_c":0},"months":[{"month":"Jan","rain_level":0,"activities":[{"label":"str","type":"plant|grow|harvest|prepare|rest|rain"}]}],"crops":[{"name":"str","emoji":"str","days_to_maturity":0,"water_needs":"low|medium|high","expected_yield":"str","best_planting_months":["Mar"],"harvest_months":["Jun"],"soil_prep":"str","spacing":"str","fertilizer":"str","pests_to_watch":["pest1"],"tips":"str"}],"soil_advice":"str","water_management":"str","market_tips":["t1"],"warnings":["w1"],"intercropping":"str"}`);
+    const r=parseAI(resp);if(!r)throw new Error('parse');
+    const meta={region,country,crops};lastCalResult=r;lastCalMeta=meta;
+    showResult(r,meta);
+  }catch(e){console.error(e);alert('Error. Please try again.');}
+  finally{document.getElementById('loading').style.display='none';document.getElementById('genBtn').disabled=false;}
+}
+function showResult(r,meta){
+  document.getElementById('result').style.display='block';
+  const c=r.climate||{};
+  document.getElementById('weatherStrip').innerHTML=`<div class="scard" data-icon="🌧️"><div class="scard-label">Annual Rain</div><div class="scard-value" style="color:#54c6eb;font-size:18px">${c.annual_rainfall_mm||'—'} mm</div></div><div class="scard" data-icon="🌡️"><div class="scard-label">Avg Temp</div><div class="scard-value" style="color:#54c6eb;font-size:18px">${c.avg_temp_c||'—'}°C</div></div><div class="scard" data-icon="🌦️"><div class="scard-label">Rain Season 1</div><div class="scard-value" style="font-size:13px;color:#54c6eb">${c.rain_season_1||'—'}</div></div><div class="scard" data-icon="🌦️"><div class="scard-label">Rain Season 2</div><div class="scard-value" style="font-size:13px;color:#54c6eb">${c.rain_season_2||'Single'}</div></div>`;
+  document.getElementById('calTitle').textContent=`12-Month Calendar — ${meta.region}, ${meta.country}`;
+  document.getElementById('monthsGrid').innerHTML=(r.months||[]).map((m,i)=>{const tags=(m.activities||[]).slice(0,3).map(a=>`<div style="padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;margin-bottom:2px;${tagStyle(a.type)}">${a.label}</div>`).join('');return`<div style="padding:11px 9px;border-right:1px solid rgba(82,183,136,0.06);border-bottom:1px solid rgba(82,183,136,0.06);min-height:90px;position:relative"><div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px">${MONTHS[i]||m.month}</div>${tags}<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(52,152,219,0.1)"><div style="height:100%;width:${Math.min(m.rain_level||0,100)}%;background:linear-gradient(90deg,#3498db,#54c6eb)"></div></div></div>`;}).join('');
+  const wIcon={low:'💧',medium:'💧💧',high:'💧💧💧'};
+  document.getElementById('cropTimelines').innerHTML=(r.crops||[]).map(crop=>`<div class="form-card" style="margin-bottom:10px"><div class="card-body"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:7px"><div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700">${crop.emoji||'🌱'} ${escHtml(crop.name)}</div><div style="display:flex;gap:5px;flex-wrap:wrap"><span style="padding:3px 9px;border-radius:10px;font-size:10px;font-weight:600;background:rgba(212,160,23,0.1);color:var(--gold-light);border:1px solid rgba(212,160,23,0.18)">⏱ ${crop.days_to_maturity||'?'} days</span><span style="padding:3px 9px;border-radius:10px;font-size:10px;font-weight:600;background:rgba(52,152,219,0.1);color:#85c1e9;border:1px solid rgba(52,152,219,0.18)">${wIcon[crop.water_needs]||'💧'} ${crop.water_needs||'—'}</span></div></div><div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px">${[['🌱 Plant',(crop.best_planting_months||[]).join(', ')||'—',crop.spacing||''],['🌾 Harvest',(crop.harvest_months||[]).join(', ')||'—',crop.expected_yield||''],['🧪 Fertilizer',crop.fertilizer||'—',''],['🐛 Pests',(crop.pests_to_watch||[]).join(', ')||'—','']].map(([l,v,s])=>`<div style="flex:1;min-width:90px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:9px;padding:9px 11px"><div style="font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px">${l}</div><div style="font-size:11px;font-weight:600;color:var(--cream)">${escHtml(v)}</div>${s?`<div style="font-size:10px;color:var(--muted)">${escHtml(s)}</div>`:''}</div>`).join('')}</div><div style="font-size:12px;color:rgba(245,240,232,0.7);line-height:1.5">💡 ${escHtml(crop.tips||'')}</div></div></div>`).join('');
+  document.getElementById('infoGrid').innerHTML=`<div class="rblock"><h4>🪱 Soil Advice</h4><p>${escHtml(r.soil_advice||'—')}</p></div><div class="rblock"><h4>💧 Water Management</h4><p>${escHtml(r.water_management||'—')}</p></div>${r.intercropping?`<div class="rblock good"><h4>🔀 Intercropping</h4><p>${escHtml(r.intercropping)}</p></div>`:''}${r.market_tips?.length?`<div class="rblock"><h4>💹 Market Tips</h4><ul>${r.market_tips.map(t=>'<li>'+escHtml(t)+'</li>').join('')}</ul></div>`:''}${r.warnings?.length?`<div class="rblock warn full"><h4>⚠️ Warnings</h4><ul>${r.warnings.map(w=>'<li>'+escHtml(w)+'</li>').join('')}</ul></div>`:''}<div class="rblock good full"><h4>🌍 Location Summary</h4><p>${escHtml(r.location_summary||'—')}</p></div>`;
+  save('cal',[{id:Date.now(),region:meta.region,country:meta.country,crops:meta.crops,date:new Date().toLocaleDateString(),data:meta,result:r},...DS('cal')].slice(0,10));
+  renderHist();document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+function shareCalWhatsApp(){if(!lastCalMeta)return;const crops=(lastCalResult?.crops||[]).map(c=>`• ${c.name}: Plant ${(c.best_planting_months||[]).join(', ')} → Harvest ${(c.harvest_months||[]).join(', ')}`).join('\n');shareWhatsApp(`📅 AgriLogic Planting Calendar\n📍 ${lastCalMeta.region}, ${lastCalMeta.country}\n\n${crops}\n\nPowered by AgriLogic`);}
+function renderHist(){const el=document.getElementById('histList');const h=DS('cal');if(!h.length){el.innerHTML='<div class="hist-empty">No calendars yet.</div>';return;}el.innerHTML='<div class="hist-list">'+h.slice(0,5).map(e=>`<div class="hist-item"><div class="hist-icon">📅</div><div class="hist-info"><div class="hist-name">${escHtml(e.region)}, ${escHtml(e.country)}</div><div class="hist-meta">${e.date}</div></div><span style="font-size:11px;color:var(--blue)">${(e.crops||[]).slice(0,3).join(', ')}</span></div>`).join('')+'</div>';const items=el.querySelectorAll('.hist-item');DS('cal').slice(0,5).forEach((entry,i)=>{if(items[i])items[i].onclick=()=>showResult(entry.result,entry.data);});}
+renderHist();
+
+initShared('calendar');
+</script>
+</body></html>

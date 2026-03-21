@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriLogic — Soil Test Analyser</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+</head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  <div class="main-content"><div class="page">
+    <div class="page-header">
+      <div class="page-badge" style="background:rgba(124,92,58,0.12);border-color:rgba(124,92,58,0.28);color:#d4956a">🧪 Soil</div>
+      <h2>Soil Test <em>Analyser</em></h2>
+    </div>
+
+<div class="fg">
+  <div class="form-card"><div class="card-head"><span class="card-icon">🧪</span><h3>Soil Test Results</h3></div><div class="card-body">
+    <div class="g2"><div class="field-group"><label class="field-label">pH Level</label><input type="number" id="ph" placeholder="e.g. 6.2" step="0.1"></div><div class="field-group"><label class="field-label">Soil Type</label><div class="sw"><select id="soilType"><option value="loam">Loam</option><option value="clay">Clay</option><option value="sandy">Sandy</option><option value="volcanic">Volcanic/Red</option><option value="black-cotton">Black Cotton</option></select></div></div></div>
+    <div class="g3"><div class="field-group"><label class="field-label">Nitrogen (N) ppm</label><input type="number" id="n" placeholder="e.g. 12" step="0.1"></div><div class="field-group"><label class="field-label">Phosphorus (P)</label><input type="number" id="p" placeholder="e.g. 8" step="0.1"></div><div class="field-group"><label class="field-label">Potassium (K)</label><input type="number" id="k" placeholder="e.g. 95" step="0.1"></div></div>
+    <div class="g3"><div class="field-group"><label class="field-label">Calcium (Ca)</label><input type="number" id="ca" placeholder="e.g. 1200"></div><div class="field-group"><label class="field-label">Magnesium (Mg)</label><input type="number" id="mg" placeholder="e.g. 180"></div><div class="field-group"><label class="field-label">Organic Matter %</label><input type="number" id="om" placeholder="e.g. 2.1" step="0.1"></div></div>
+  </div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">🌾</span><h3>Farm Details</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label">Target Crops</label><input type="text" id="crop" placeholder="e.g. Maize, Tomatoes, Beans"></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Farm Size</label><input type="number" id="size" placeholder="e.g. 2" step="0.1"></div><div class="field-group"><label class="field-label">Unit</label><div class="sw"><select id="unit"><option>Acres</option><option>Hectares</option></select></div></div></div>
+    <div class="field-group"><label class="field-label">Location</label><input type="text" id="location" placeholder="e.g. Nakuru, Kenya"></div>
+    <div class="field-group"><label class="field-label">Previous Crop</label><input type="text" id="prevCrop" placeholder="e.g. Beans (helps assess N)"></div>
+    <div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div>
+  </div></div>
+</div>
+<button class="btn btn-full" id="soilBtn" onclick="runSoil()" style="background:linear-gradient(135deg,#5d4037,#8d6e63);color:white;font-size:14px;font-weight:600;border:none;border-radius:10px;padding:14px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.22s">🧪 Analyse My Soil</button>
+<div class="loading-state" id="loading"><div class="spinner" style="border-top-color:#d4956a"></div><strong>Analysing soil...</strong><p>AI is interpreting your test results</p></div>
+<div class="result-section" id="result"></div>
+<div class="hist-section"><div class="hist-title">📂 Soil Test History</div><div id="histList"><div class="hist-empty">No soil tests yet.</div></div></div>
+
+  </div></div>
+</div>
+<script src="../shared.js"></script>
+<script>
+async function runSoil(){
+  const ph=document.getElementById('ph').value;const crop=document.getElementById('crop').value.trim();
+  if(!ph||!crop){alert('Please enter pH level and target crop(s).');return;}
+  const currency=document.getElementById('currency').value;
+  document.getElementById('loading').style.display='block';document.getElementById('result').style.display='none';document.getElementById('soilBtn').disabled=true;
+  try{
+    const resp=await callAI(`You are AgriLogic soil scientist for East African farmers.\n${langNote()}\npH: ${ph}, Type: ${document.getElementById('soilType').value}, N: ${document.getElementById('n').value||'unknown'} ppm, P: ${document.getElementById('p').value||'unknown'} ppm, K: ${document.getElementById('k').value||'unknown'} ppm, Ca: ${document.getElementById('ca').value||'unknown'} ppm, Mg: ${document.getElementById('mg').value||'unknown'} ppm, OM: ${document.getElementById('om').value||'unknown'}%\nTarget crops: ${crop}, Farm: ${document.getElementById('size').value||1} ${document.getElementById('unit').value}, Location: ${document.getElementById('location').value||'East Africa'}, Prev crop: ${document.getElementById('prevCrop').value||'unknown'}, Currency: ${currency}\nRespond ONLY with JSON:\n{"overall_rating":"Excellent/Good/Fair/Poor","ph_status":"str","ph_action":"str","n_status":"str","p_status":"str","k_status":"str","deficiencies":["def1"],"lime_needed_kg_per_acre":0,"fertilizer_plan":[{"product":"str","quantity_kg_per_acre":0,"timing":"str","cost_estimate":0}],"organic_matter_advice":"str","crop_suitability":"str","expected_yield_improvement":"str","total_amendment_cost":0,"application_steps":["step1"],"warnings":["w1"],"summary":"str"}`);
+    const r=parseAI(resp);if(!r)throw new Error('parse');
+    const meta={ph,crop,size:document.getElementById('size').value,currency};
+    showResult(r,meta);
+  }catch(e){console.error(e);alert('Error. Please try again.');}
+  finally{document.getElementById('loading').style.display='none';document.getElementById('soilBtn').disabled=false;}
+}
+function showResult(r,meta){
+  const rc={Excellent:'var(--green)',Good:'#7dde9a',Fair:'var(--warn)',Poor:'#e74c3c'};
+  const el=document.getElementById('result');el.style.display='block';
+  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(124,92,58,0.12),rgba(82,183,136,0.06));border:1px solid rgba(124,92,58,0.2);border-radius:17px;padding:22px;margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px"><div><div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:4px">SOIL RATING</div><div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:${rc[r.overall_rating]||'var(--green)'}">${r.overall_rating}</div></div><div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Amendment Cost</div><div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gold-light)">${meta.currency} ${fmt(r.total_amendment_cost)}</div></div></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">${[['pH',r.ph_status],['N',r.n_status],['P',r.p_status],['K',r.k_status]].map(([l,s])=>`<div style="background:rgba(255,255,255,0.04);border-radius:9px;padding:9px 10px"><div style="font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase">${l}</div><div style="font-size:12px;font-weight:600;margin-top:2px;color:${s==='Deficient'||s==='Very Low'?'#e74c3c':s==='Adequate'||s==='Optimal'||s==='Good'?'var(--green)':'var(--warn)'}">${s||'—'}</div></div>`).join('')}</div><p style="font-size:13px;color:rgba(245,240,232,0.85)">${escHtml(r.summary||'')}</p></div><div class="rgrid">${r.lime_needed_kg_per_acre>0?`<div class="rblock warn"><h4>🪨 Lime Required</h4><p>${escHtml(r.ph_action)}</p><p style="margin-top:7px;font-weight:600;color:var(--cream)">${fmt(r.lime_needed_kg_per_acre)} kg/acre</p></div>`:`<div class="rblock good"><h4>✅ pH Status</h4><p>${escHtml(r.ph_action||'pH is acceptable.')}</p></div>`}<div class="rblock"><h4>🌾 Crop Suitability</h4><p>${escHtml(r.crop_suitability||'—')}</p>${r.expected_yield_improvement?`<p style="margin-top:7px;color:var(--green);font-weight:500">${escHtml(r.expected_yield_improvement)}</p>`:''}</div><div class="rblock full"><h4>🧪 Fertilizer Plan</h4><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Product</th><th>Qty/acre</th><th>Timing</th><th>Est. Cost</th></tr></thead><tbody>${(r.fertilizer_plan||[]).map(fp=>`<tr><td>${escHtml(fp.product)}</td><td>${fmt(fp.quantity_kg_per_acre)} kg</td><td>${escHtml(fp.timing)}</td><td>${meta.currency} ${fmt(fp.cost_estimate)}</td></tr>`).join('')}</tbody></table></div></div><div class="rblock"><h4>📋 Application Steps</h4><ul>${(r.application_steps||[]).map(s=>'<li>'+escHtml(s)+'</li>').join('')}</ul></div><div class="rblock"><h4>🌿 Organic Matter</h4><p>${escHtml(r.organic_matter_advice||'—')}</p></div>${r.deficiencies?.length?`<div class="rblock warn"><h4>⚠️ Deficiencies</h4><ul>${r.deficiencies.map(d=>'<li>'+escHtml(d)+'</li>').join('')}</ul></div>`:''}${r.warnings?.length?`<div class="rblock warn full"><h4>⚠️ Warnings</h4><ul>${r.warnings.map(w=>'<li>'+escHtml(w)+'</li>').join('')}</ul></div>`:''}</div>`;
+  save('soil',[{id:Date.now(),crop:meta.crop,ph:meta.ph,rating:r.overall_rating,date:new Date().toLocaleDateString(),result:r,meta},...DS('soil')].slice(0,10));
+  renderHist();el.scrollIntoView({behavior:'smooth'});
+}
+function renderHist(){const el=document.getElementById('histList');const h=DS('soil');if(!h.length){el.innerHTML='<div class="hist-empty">No soil tests yet.</div>';return;}const rc={Excellent:'var(--green)',Good:'#7dde9a',Fair:'var(--warn)',Poor:'#e74c3c'};el.innerHTML='<div class="hist-list">'+h.slice(0,5).map(e=>`<div class="hist-item"><div class="hist-icon">🧪</div><div class="hist-info"><div class="hist-name">${escHtml(e.crop)}</div><div class="hist-meta">pH ${e.ph} · ${e.date}</div></div><span style="font-size:11px;font-weight:600;color:${rc[e.rating]||'var(--green)'}">${e.rating}</span></div>`).join('')+'</div>';const items=el.querySelectorAll('.hist-item');DS('soil').slice(0,5).forEach((entry,i)=>{if(items[i])items[i].onclick=()=>showResult(entry.result,entry.meta);});}
+renderHist();
+
+initShared('soil');
+</script>
+</body></html>

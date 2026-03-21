@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Farm Task Manager</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(142,68,173,0.1);border-color:rgba(142,68,173,0.25);color:#bb8fce">📋 Tasks</div><h2>Farm Task <em>Manager</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+  <button class="btn btn-purple btn-sm" onclick="openModal()">+ Add Task</button>
+  <div class="ftabs"><div class="ftab active" id="tf-all" onclick="filterTasks('all')">All</div><div class="ftab" id="tf-today" onclick="filterTasks('today')">Today</div><div class="ftab" id="tf-pending" onclick="filterTasks('pending')">Pending</div><div class="ftab" id="tf-done" onclick="filterTasks('done')">Done</div></div>
+</div>
+<div id="taskOverdue" style="margin-bottom:10px"></div>
+<div id="taskList"></div>
+<div class="hist-empty" id="taskEmpty">No tasks yet. Add your first farm task.</div>
+<div class="modal-overlay" id="taskModal">
+  <div class="modal"><h3>Add Farm Task</h3><p class="modal-sub">Schedule with category, priority and due date.</p>
+    <div class="modal-fields">
+      <input type="text" id="tk-title" placeholder="Task (e.g. Deworm flock on Day 14)">
+      <div class="sw"><select id="tk-cat"><option value="health">💉 Animal Health</option><option value="feed">🌾 Feeding</option><option value="crop">🌱 Crops</option><option value="equipment">🔧 Equipment</option><option value="market">🏪 Market</option><option value="finance">💰 Finance</option><option value="other">📋 Other</option></select></div>
+      <input type="date" id="tk-due">
+      <div class="sw"><select id="tk-priority"><option value="low">🟢 Low Priority</option><option value="medium" selected>🟡 Medium Priority</option><option value="high">🔴 High Priority</option></select></div>
+      <input type="text" id="tk-animal" placeholder="Related animal/crop (optional)">
+      <textarea id="tk-notes" rows="2" placeholder="Notes (optional)"></textarea>
+      <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);cursor:pointer"><input type="checkbox" id="tk-repeat"> Repeat weekly</label>
+    </div>
+    <input type="hidden" id="tk-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('taskModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveTask()" style="background:linear-gradient(135deg,#6c3483,#9b59b6)">Save Task</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+let taskFilter='all';
+function openModal(id){const modal=document.getElementById('taskModal');modal.dataset.editId=id||'';if(id){const t=DS('tasks').find(x=>x.id===id);if(t){document.getElementById('tk-title').value=t.title;document.getElementById('tk-cat').value=t.category;document.getElementById('tk-due').value=t.due||'';document.getElementById('tk-priority').value=t.priority||'medium';document.getElementById('tk-animal').value=t.animal||'';document.getElementById('tk-notes').value=t.notes||'';document.getElementById('tk-repeat').checked=t.repeat||false;}}else{modal.querySelectorAll('input:not([type=checkbox]),textarea').forEach(el=>el.value='');document.getElementById('tk-repeat').checked=false;document.getElementById('tk-due').value=today();document.getElementById('tk-priority').value='medium';}modal.classList.add('open');}
+function saveTask(){const title=document.getElementById('tk-title').value.trim();if(!title){alert('Please enter a task title.');return;}const editId=document.getElementById('taskModal').dataset.editId;const task={id:editId||Date.now().toString(),title,category:document.getElementById('tk-cat').value,due:document.getElementById('tk-due').value,priority:document.getElementById('tk-priority').value,animal:document.getElementById('tk-animal').value.trim(),notes:document.getElementById('tk-notes').value.trim(),repeat:document.getElementById('tk-repeat').checked,done:editId?(DS('tasks').find(x=>x.id===editId)||{}).done||false:false,created:new Date().toLocaleDateString()};let tasks=DS('tasks');if(editId){const idx=tasks.findIndex(x=>x.id===editId);if(idx>=0)tasks[idx]=task;else tasks.unshift(task);}else{tasks.unshift(task);}save('tasks',tasks);document.getElementById('taskModal').classList.remove('open');renderTasks();}
+function toggleTask(id){const tasks=DS('tasks');const t=tasks.find(x=>x.id===id);if(t){t.done=!t.done;t.completedDate=t.done?new Date().toLocaleDateString():null;}save('tasks',tasks);renderTasks();}
+function deleteTask(id){save('tasks',DS('tasks').filter(x=>x.id!==id));renderTasks();}
+function filterTasks(f){taskFilter=f;['all','today','pending','done'].forEach(x=>document.getElementById('tf-'+x)?.classList.toggle('active',x===f));renderTasks();}
+function renderTasks(){
+  let h=DS('tasks');
+  if(taskFilter==='today')h=h.filter(t=>t.due===today());
+  else if(taskFilter==='pending')h=h.filter(t=>!t.done);
+  else if(taskFilter==='done')h=h.filter(t=>t.done);
+  const overdue=DS('tasks').filter(t=>!t.done&&t.due&&t.due<today());
+  document.getElementById('taskOverdue').innerHTML=overdue.length?`<div class="alert alert-danger">🚨 <strong>${overdue.length} overdue:</strong> ${overdue.map(t=>escHtml(t.title)).join(', ')}</div>`:'';
+  const list=document.getElementById('taskList');const empty=document.getElementById('taskEmpty');
+  if(!h.length){list.innerHTML='';empty.style.display='block';return;}empty.style.display='none';
+  const pColor={high:'#e74c3c',medium:'var(--gold-light)',low:'var(--green)'};
+  const catIcons={health:'💉',feed:'🌾',crop:'🌱',equipment:'🔧',market:'🏪',finance:'💰',other:'📋'};
+  const sorted=[...h].sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return(a.due||'9')<(b.due||'9')?-1:1;});
+  list.innerHTML=sorted.map(t=>{const isOverdue=!t.done&&t.due&&t.due<today();const isToday=t.due===today();return`<div style="background:rgba(255,255,255,0.03);border:1px solid ${isOverdue?'rgba(192,57,43,0.25)':isToday?'rgba(82,183,136,0.2)':'var(--border)'};border-radius:12px;padding:13px 15px;margin-bottom:7px;display:flex;align-items:flex-start;gap:11px;${t.done?'opacity:0.5':''}"><div onclick="toggleTask('${t.id}')" style="width:20px;height:20px;border-radius:5px;border:2px solid ${t.done?'var(--green)':'rgba(82,183,136,0.3)'};background:${t.done?'var(--green)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;color:white">${t.done?'✓':''}</div><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:13px;font-weight:600;color:var(--cream);${t.done?'text-decoration:line-through':''}">${catIcons[t.category]||'📋'} ${escHtml(t.title)}</span><span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:7px;background:rgba(82,183,136,0.08);color:${pColor[t.priority]||'var(--green)'}">${(t.priority||'').toUpperCase()}</span>${t.repeat?'<span style="font-size:9px;color:var(--muted);background:rgba(255,255,255,0.04);padding:2px 6px;border-radius:6px">🔁 Weekly</span>':''}</div><div style="font-size:11px;color:${isOverdue?'#e74c3c':isToday?'var(--green)':'var(--muted)'};margin-top:2px">${t.due?'📅 '+(isOverdue?'OVERDUE — ':isToday?'TODAY — ':'')+t.due:'No due date'}${t.animal?` · 🐾 ${escHtml(t.animal)}`:''}</div>${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${escHtml(t.notes)}</div>`:''}</div><div style="display:flex;gap:5px;flex-shrink:0"><button onclick="openModal('${t.id}')" style="padding:5px 9px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Edit</button><button onclick="deleteTask('${t.id}')" style="padding:5px 9px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:7px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button></div></div>`;}).join('');
+}
+renderTasks();
+
+initShared('tasks');
+</script></body></html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriLogic — Feed & Nutrition Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+</head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  <div class="main-content"><div class="page">
+    <div class="page-header">
+      <div class="page-badge" style="background:rgba(212,160,23,0.1);border-color:rgba(212,160,23,0.25);color:var(--gold-light)">🧮 Feed Calc</div>
+      <h2>Feed & Nutrition <em>Calculator</em></h2>
+    </div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px;margin-bottom:18px" id="animalGrid">
+  <div class="data-card" style="text-align:center;padding:12px 8px;cursor:pointer" onclick="selectAnimal(this,'poultry-broiler','🐔','Broiler')"><div style="font-size:24px;margin-bottom:5px">🐔</div><div style="font-size:11px;font-weight:600">Broiler</div><div style="font-size:9px;color:var(--muted)">Kuku wa Nyama</div></div>
+  <div class="data-card" style="text-align:center;padding:12px 8px;cursor:pointer" onclick="selectAnimal(this,'poultry-layer','🥚','Layer')"><div style="font-size:24px;margin-bottom:5px">🥚</div><div style="font-size:11px;font-weight:600">Layer</div><div style="font-size:9px;color:var(--muted)">Kuku wa Mayai</div></div>
+  <div class="data-card" style="text-align:center;padding:12px 8px;cursor:pointer" onclick="selectAnimal(this,'poultry-chick','🐣','Chicks')"><div style="font-size:24px;margin-bottom:5px">🐣</div><div style="font-size:11px;font-weight:600">Chicks</div><div style="font-size:9px;color:var(--muted)">Vifaranga</div></div>
+  <div class="data-card" style="text-align:center;padding:12px 8px;cursor:pointer" onclick="selectAnimal(this,'cattle-bull','🐂','Bull')"><div style="font-size:24px;margin-bottom:5px">🐂</div><div style="font-size:11px;font-weight:600">Bull</div><div style="font-size:9px;color:var(--muted)">Ng'ombe Dume</div></div>
+  <div class="data-card" style="text-align:center;padding:12px 8px;cursor:pointer" onclick="selectAnimal(this,'cattle-dairy','🥛','Dairy')"><div style="font-size:24px;margin-bottom:5px">🥛</div><div style="font-size:11px;font-weight:600">Dairy</div><div style="font-size:9px;color:var(--muted)">Ng'ombe Maziwa</div></div>
+  <div class="data-card" style="text-align:center;padding:12px 8px;cursor:pointer" onclick="selectAnimal(this,'goats','🐐','Goats')"><div style="font-size:24px;margin-bottom:5px">🐐</div><div style="font-size:11px;font-weight:600">Goats</div><div style="font-size:9px;color:var(--muted)">Mbuzi</div></div>
+  <div class="data-card" style="text-align:center;padding:12px 8px;cursor:pointer" onclick="selectAnimal(this,'fish-tilapia','🐟','Tilapia')"><div style="font-size:24px;margin-bottom:5px">🐟</div><div style="font-size:11px;font-weight:600">Tilapia</div><div style="font-size:9px;color:var(--muted)">Sato</div></div>
+  <div class="data-card" style="text-align:center;padding:12px 8px;cursor:pointer" onclick="selectAnimal(this,'fish-catfish','🐠','Catfish')"><div style="font-size:24px;margin-bottom:5px">🐠</div><div style="font-size:11px;font-weight:600">Catfish</div><div style="font-size:9px;color:var(--muted)">Kambale</div></div>
+</div>
+<div class="fg">
+  <div class="form-card"><div class="card-head"><span class="card-icon">📋</span><h3>Farm Details</h3></div><div class="card-body">
+    <div class="g2"><div class="field-group"><label class="field-label">Animals Count</label><input type="number" id="count" placeholder="e.g. 500"></div><div class="field-group"><label class="field-label">Stage</label><div class="sw"><select id="stage"><option value="">Select</option><option value="starter">Starter</option><option value="grower">Grower</option><option value="finisher">Finisher</option><option value="laying">Laying</option><option value="maintenance">Maintenance</option></select></div></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Goal</label><div class="sw"><select id="goal"><option value="">Select</option><option value="fast-growth">Fast Growth</option><option value="egg-production">Max Eggs</option><option value="milk-production">Max Milk</option><option value="low-cost">Low Cost</option><option value="balanced">Balanced</option></select></div></div><div class="field-group"><label class="field-label">Batch Size (kg)</label><input type="number" id="batch" placeholder="e.g. 70"></div></div>
+    <div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div>
+  </div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">🌾</span><h3>Ingredients & Prices</h3></div><div class="card-body">
+    <div class="field-label" style="margin-bottom:8px">Quick-add:</div>
+    <div class="tags" id="presetChips"></div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 28px;gap:7px;padding-bottom:6px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase"><span>Ingredient</span><span>Qty kg</span><span>Price/kg</span><span></span></div>
+    <div id="ingrRows"></div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="addRow()">+ Add Ingredient</button>
+  </div></div>
+</div>
+<button class="btn btn-gold btn-full" id="calcBtn" onclick="runCalc()">🧮 Calculate Feed Formula</button>
+<div class="loading-state" id="loading"><div class="spinner" style="border-top-color:var(--gold)"></div><strong>Calculating...</strong><p>Optimising your feed formula</p></div>
+<div class="result-section" id="result">
+  <div class="stat-strip" id="statStrip"></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3>Feed Formula</h3></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ingredient</th><th>Amount</th><th>% Mix</th><th>Cost</th></tr></thead><tbody id="formulaBody"></tbody></table></div></div>
+  <div class="rgrid" id="resultGrid"></div>
+</div>
+<div class="hist-section"><div class="hist-title">📂 Formula History</div><div id="histList"><div class="hist-empty">No formulas yet.</div></div></div>
+
+  </div></div>
+</div>
+<script src="../shared.js"></script>
+<script>
+let animal=null,animalEmoji='',animalLabel='',rowCount=0;
+const presets={'poultry-broiler':['Maize (Mahindi)','Soybean Meal','Fish Meal (Omena)','Sunflower Cake','Limestone','Salt','Premix Vitamins','Wheat Bran'],'poultry-layer':['Maize (Mahindi)','Soybean Meal','Fish Meal (Omena)','Limestone','Bone Meal','Salt','Premix Vitamins'],'poultry-chick':['Maize (Mahindi)','Soybean Meal','Fish Meal (Omena)','Skim Milk Powder','Limestone','Premix','Salt'],'cattle-bull':['Maize Germ','Wheat Bran','Cotton Seed Cake','Molasses','Urea','Salt','Bone Meal','Hay'],'cattle-dairy':['Maize Germ','Wheat Bran','Cotton Seed Cake','Molasses','Urea','Salt','Bone Meal','Dairy Premix'],'goats':['Maize Germ','Wheat Bran','Sunflower Cake','Molasses','Salt','Bone Meal','Hay'],'fish-tilapia':['Fishmeal (Omena)','Soybean Meal','Maize Flour','Rice Bran','Premix','Salt'],'fish-catfish':['Fishmeal (Omena)','Soybean Meal','Groundnut Cake','Maize Flour','Blood Meal','Premix']};
+function selectAnimal(el,type,emoji,label){
+  animal=type;animalEmoji=emoji;animalLabel=label;
+  document.querySelectorAll('#animalGrid .data-card').forEach(c=>{c.style.borderColor='';c.style.background='';});
+  el.style.borderColor='var(--gold)';el.style.background='rgba(212,160,23,0.08)';
+  document.getElementById('presetChips').innerHTML=(presets[type]||[]).map(n=>`<div class="tag" onclick="addRow('${n}')">${n}</div>`).join('');
+  if(!document.getElementById('ingrRows').children.length)addRow();
+}
+function addRow(name=''){
+  const id=++rowCount;const row=document.createElement('div');row.id='ir-'+id;
+  row.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr 28px;gap:7px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(82,183,136,0.05)';
+  row.innerHTML=`<input type="text" placeholder="Name" value="${name}" id="in-${id}" style="font-size:12px;padding:8px 10px"><input type="number" placeholder="kg" id="iq-${id}" style="font-size:12px;padding:8px 10px"><input type="number" placeholder="Price" id="ip-${id}" style="font-size:12px;padding:8px 10px"><button onclick="document.getElementById('ir-${id}').remove()" style="width:26px;height:26px;background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.2);border-radius:6px;color:#e74c3c;cursor:pointer;font-size:12px">✕</button>`;
+  document.getElementById('ingrRows').appendChild(row);
+}
+function getIngr(){return[...document.querySelectorAll('[id^="ir-"]')].map(row=>{const id=row.id.replace('ir-','');const name=document.getElementById('in-'+id)?.value.trim();const qty=parseFloat(document.getElementById('iq-'+id)?.value)||0;const price=parseFloat(document.getElementById('ip-'+id)?.value)||0;return name?{name,qty,price}:null;}).filter(Boolean);}
+async function runCalc(){
+  if(!animal){alert('Select an animal type first.');return;}
+  const count=document.getElementById('count').value,stage=document.getElementById('stage').value;
+  const goal=document.getElementById('goal').value,batch=document.getElementById('batch').value||70;
+  const currency=document.getElementById('currency').value,ingrs=getIngr();
+  if(!count||!stage){alert('Fill in animal count and stage.');return;}
+  if(ingrs.length<2){alert('Add at least 2 ingredients.');return;}
+  document.getElementById('loading').style.display='block';document.getElementById('result').style.display='none';document.getElementById('calcBtn').disabled=true;
+  try{
+    const ingrList=ingrs.map(i=>`- ${i.name}: ${i.qty||'unlimited'}kg, ${i.price>0?currency+' '+i.price+'/kg':'no price'}`).join('\n');
+    const resp=await callAI(`You are AgriLogic expert animal nutritionist.\n${langNote()}\nAnimal: ${animalLabel}, Count: ${count}, Stage: ${stage}, Goal: ${goal||'balanced'}, Batch: ${batch}kg, Currency: ${currency}\nIngredients:\n${ingrList}\nRespond ONLY with JSON:\n{"formula_name":"name","batch_kg":${batch},"ingredients":[{"name":"str","kg":0,"pct":0,"cost":0}],"total_cost":0,"cost_per_kg":0,"cost_per_animal_per_day":0,"nutrition":{"crude_protein_pct":0,"energy_kcal_per_kg":0,"crude_fiber_pct":0,"calcium_pct":0},"feeding_rate":"str","batch_lasts_days":0,"tips":["t1"],"warnings":["w1"],"summary":"str"}`);
+    const r=parseAI(resp);if(!r)throw new Error('parse');
+    showResult(r,currency,count,stage);
+  }catch(e){console.error(e);alert('Error. Please try again.');}
+  finally{document.getElementById('loading').style.display='none';document.getElementById('calcBtn').disabled=false;}
+}
+function showResult(r,currency,count,stage){
+  document.getElementById('result').style.display='block';
+  document.getElementById('statStrip').innerHTML=`<div class="scard" data-icon="💰"><div class="scard-label">Cost/kg</div><div class="scard-value" style="color:var(--gold-light)">${currency} ${fmt(r.cost_per_kg)}</div></div><div class="scard" data-icon="📦"><div class="scard-label">Total Cost</div><div class="scard-value" style="color:var(--gold-light)">${currency} ${fmt(r.total_cost)}</div></div><div class="scard" data-icon="⏱"><div class="scard-label">Lasts</div><div class="scard-value" style="color:var(--green)">${r.batch_lasts_days||'—'} days</div></div><div class="scard" data-icon="🍽️"><div class="scard-label">Feeding Rate</div><div class="scard-value" style="font-size:12px;padding-top:4px">${r.feeding_rate||'—'}</div></div>`;
+  document.getElementById('formulaBody').innerHTML=(r.ingredients||[]).map(ing=>`<tr><td>${escHtml(ing.name)}</td><td><strong>${fmt(ing.kg)}</strong> kg</td><td><div style="display:flex;align-items:center;gap:7px"><div style="flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(ing.pct||0,100)}%;background:linear-gradient(90deg,var(--green),var(--gold-light));border-radius:3px"></div></div><span style="font-size:11px;color:var(--green)">${fmt(ing.pct)}%</span></div></td><td>${ing.cost>0?currency+' '+fmt(ing.cost):'—'}</td></tr>`).join('');
+  const n=r.nutrition||{};
+  document.getElementById('resultGrid').innerHTML=`<div class="rblock"><h4>🧬 Nutrition</h4><ul><li>Protein: <strong>${n.crude_protein_pct||'—'}%</strong></li><li>Energy: <strong>${n.energy_kcal_per_kg||'—'} kcal/kg</strong></li><li>Fiber: <strong>${n.crude_fiber_pct||'—'}%</strong></li><li>Calcium: <strong>${n.calcium_pct||'—'}%</strong></li></ul></div><div class="rblock gold"><h4>💰 Costs</h4><ul><li>Per kg: <strong>${currency} ${fmt(r.cost_per_kg)}</strong></li><li>Per animal/day: <strong>${currency} ${fmt(r.cost_per_animal_per_day)}</strong></li><li>Full batch: <strong>${currency} ${fmt(r.total_cost)}</strong></li></ul></div>${r.tips?.length?`<div class="rblock"><h4>💡 Tips</h4><ul>${r.tips.map(t=>'<li>'+escHtml(t)+'</li>').join('')}</ul></div>`:''}${r.warnings?.length?`<div class="rblock warn"><h4>⚠️ Warnings</h4><ul>${r.warnings.map(w=>'<li>'+escHtml(w)+'</li>').join('')}</ul></div>`:''}<div class="rblock good full"><h4>📋 Summary</h4><p>${escHtml(r.summary||'—')}</p></div>`;
+  save('feed',[{id:Date.now(),formula_name:r.formula_name,animal:animalLabel,emoji:animalEmoji,count,stage,currency,cost_per_kg:r.cost_per_kg,total_cost:r.total_cost,date:new Date().toLocaleDateString(),result:r},...DS('feed')].slice(0,15));
+  renderHist();document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+function renderHist(){
+  const el=document.getElementById('histList');const h=DS('feed');
+  if(!h.length){el.innerHTML='<div class="hist-empty">No formulas yet.</div>';return;}
+  el.innerHTML='<div class="hist-list">'+h.slice(0,5).map(e=>`<div class="hist-item"><div class="hist-icon">${e.emoji}</div><div class="hist-info"><div class="hist-name">${escHtml(e.formula_name||e.animal+' Feed')}</div><div class="hist-meta">${e.animal} · ${e.count} animals · ${e.date}</div></div><span style="font-size:11px;font-weight:600;color:var(--gold-light)">${e.currency} ${fmt(e.cost_per_kg)}/kg</span></div>`).join('')+'</div>';
+  const items=el.querySelectorAll('.hist-item');
+  DS('feed').slice(0,5).forEach((entry,i)=>{if(items[i])items[i].onclick=()=>showResult(entry.result,entry.currency,entry.count,entry.stage);});
+}
+renderHist();
+
+initShared('feed');
+</script>
+</body></html>

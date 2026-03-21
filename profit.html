@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriLogic — Profit & Cost Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+</head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  <div class="main-content"><div class="page">
+    <div class="page-header">
+      <div class="page-badge" style="background:rgba(82,183,136,0.1);border-color:rgba(82,183,136,0.25);color:var(--green)">💰 Profit</div>
+      <h2>Profit & Cost <em>Tracker</em></h2>
+    </div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+  <div class="ftabs" id="batchTabs"><div class="ftab active" id="btab-0" onclick="selectBatch(0)">Batch 1</div></div>
+  <button class="btn btn-green btn-sm" onclick="addBatch()">+ New Batch</button>
+</div>
+<div class="fg">
+  <div class="form-card"><div class="card-head"><span class="card-icon">📋</span><h3>Batch Info</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label">Batch Name</label><input type="text" id="bname" placeholder="e.g. Broiler March 2026"></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Animal/Crop</label><div class="sw"><select id="banimal"><option value="">Select</option><option>🐔 Broiler</option><option>🥚 Layer</option><option>🐂 Bull</option><option>🥛 Dairy Cow</option><option>🐐 Goats</option><option>🐟 Tilapia</option><option>🌽 Maize</option><option>🍅 Tomatoes</option><option>🌾 Other</option></select></div></div><div class="field-group"><label class="field-label">Count</label><input type="number" id="bcount" placeholder="e.g. 500"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Start Date</label><input type="date" id="bstart"></div><div class="field-group"><label class="field-label">End Date</label><input type="date" id="bend"></div></div>
+    <div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="bcurrency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div>
+  </div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">💵</span><h3>Revenue</h3></div><div class="card-body">
+    <div class="g2"><div class="field-group"><label class="field-label">Units Sold</label><input type="number" id="bsold" placeholder="e.g. 480"></div><div class="field-group"><label class="field-label">Sale Price/Unit</label><input type="number" id="bprice" placeholder="e.g. 650"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">By-product Revenue</label><input type="number" id="bbyproduct" placeholder="eggs, milk, manure..."></div><div class="field-group"><label class="field-label">Mortality (units)</label><input type="number" id="bmortality" placeholder="e.g. 20"></div></div>
+  </div></div>
+  <div class="form-card full"><div class="card-head"><span class="card-icon">📊</span><h3>Cost Breakdown</h3></div><div class="card-body">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 28px;gap:7px;padding-bottom:6px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase"><span>Cost Item</span><span>Category</span><span>Amount</span><span></span></div>
+    <div id="costRows"></div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="addCostRow()">+ Add Cost Item</button>
+  </div></div>
+</div>
+<button class="btn btn-full" id="analyseBtn" onclick="runAnalysis()" style="background:linear-gradient(135deg,#1a6b3a,#27ae60);color:white;font-size:14px;font-weight:600;border:none;border-radius:10px;padding:14px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.22s">📊 Analyse Profit & Loss</button>
+<div class="loading-state" id="loading"><div class="spinner" style="border-top-color:#27ae60"></div><strong>Analysing...</strong><p>Calculating your profit</p></div>
+<div class="result-section" id="result">
+  <div class="stat-strip" id="statStrip"></div>
+  <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:13px;padding:18px 20px;margin-bottom:10px" id="meterBlock">
+    <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:9px"><span>Total Costs</span><span id="verdict"></span><span>Total Revenue</span></div>
+    <div style="height:9px;background:rgba(255,255,255,0.05);border-radius:5px;overflow:hidden"><div id="meterFill" style="height:100%;border-radius:5px;transition:width 1.2s ease;width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px"><span id="costVal"></span><span></span><span id="revVal"></span></div>
+  </div>
+  <div class="rgrid" id="resultGrid"></div>
+</div>
+<div class="hist-section"><div class="hist-title">📂 Batch History</div><div id="histList"><div class="hist-empty">No batches yet.</div></div></div>
+
+  </div></div>
+</div>
+<script src="../shared.js"></script>
+<script>
+let currentBatch=0,costRowCount=0;
+const COST_CATS=['Feed','Chicks/Stock','Medicine/Vet','Labour','Equipment','Transport','Utilities','Other'];
+function addBatch(){const idx=document.querySelectorAll('#batchTabs .ftab').length;const tab=document.createElement('div');tab.className='ftab';tab.id='btab-'+idx;tab.textContent='Batch '+(idx+1);tab.onclick=()=>selectBatch(idx);document.getElementById('batchTabs').appendChild(tab);selectBatch(idx);clearForm();}
+function selectBatch(idx){currentBatch=idx;document.querySelectorAll('#batchTabs .ftab').forEach((t,i)=>t.classList.toggle('active',i===idx));document.getElementById('result').style.display='none';}
+function clearForm(){['bname','bcount','bsold','bprice','bbyproduct','bmortality','bstart','bend'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('costRows').innerHTML='';costRowCount=0;addCostRow('Day-old Chicks / Seedlings','Chicks/Stock');addCostRow('Feed Total','Feed');addCostRow('Medicine & Vaccines','Medicine/Vet');addCostRow('Labour','Labour');}
+function addCostRow(name='',cat=''){const id=++costRowCount;const row=document.createElement('div');row.id='cr-'+id;row.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr 28px;gap:7px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(82,183,136,0.05)';const opts=COST_CATS.map(c=>`<option value="${c}" ${c===cat?'selected':''}>${c}</option>`).join('');row.innerHTML=`<input type="text" placeholder="Cost item" value="${name}" id="cn-${id}" style="font-size:12px;padding:8px 10px"><div class="sw"><select id="cc-${id}" style="font-size:12px;padding:8px 10px"><option value="">Category</option>${opts}</select></div><input type="number" placeholder="Amount" id="ca-${id}" style="font-size:12px;padding:8px 10px" step="0.01"><button onclick="document.getElementById('cr-${id}').remove()" style="width:26px;height:26px;background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.2);border-radius:6px;color:#e74c3c;cursor:pointer;font-size:12px">✕</button>`;document.getElementById('costRows').appendChild(row);}
+function getCosts(){return[...document.querySelectorAll('[id^="cr-"]')].map(row=>{const id=row.id.replace('cr-','');const name=document.getElementById('cn-'+id)?.value.trim();const cat=document.getElementById('cc-'+id)?.value||'Other';const amt=parseFloat(document.getElementById('ca-'+id)?.value)||0;return name&&amt>0?{name,cat,amount:amt}:null;}).filter(Boolean);}
+async function runAnalysis(){
+  const name=document.getElementById('bname').value.trim()||'Batch '+(currentBatch+1);
+  const animal=document.getElementById('banimal').value;const count=parseFloat(document.getElementById('bcount').value)||0;
+  const sold=parseFloat(document.getElementById('bsold').value)||0;const price=parseFloat(document.getElementById('bprice').value)||0;
+  const byproduct=parseFloat(document.getElementById('bbyproduct').value)||0;const mortality=parseFloat(document.getElementById('bmortality').value)||0;
+  const currency=document.getElementById('bcurrency').value;const costs=getCosts();
+  if(!animal||!count||!price||!costs.length){alert('Fill in all required fields.');return;}
+  const totalRevenue=(sold*price)+byproduct;const totalCosts=costs.reduce((s,c)=>s+c.amount,0);const grossProfit=totalRevenue-totalCosts;
+  const mortalityRate=count>0?((mortality/count)*100).toFixed(1):0;
+  document.getElementById('loading').style.display='block';document.getElementById('result').style.display='none';document.getElementById('analyseBtn').disabled=true;
+  try{
+    const costStr=costs.map(c=>`- ${c.name} (${c.cat}): ${currency} ${c.amount}`).join('\n');
+    const resp=await callAI(`You are AgriLogic agricultural business analyst.\n${langNote()}\nBatch: ${name}, Animal: ${animal}, Count: ${count}, Mortality: ${mortality} (${mortalityRate}%), Sold: ${sold}@${currency}${price}, Byproduct: ${currency}${byproduct}\nCosts:\n${costStr}\nRevenue: ${currency}${totalRevenue}, Costs: ${currency}${totalCosts}, P&L: ${currency}${grossProfit}\nRespond ONLY with JSON:\n{"verdict":"profit/loss/break-even","profit_margin_pct":0,"roi_pct":0,"cost_per_unit":0,"revenue_per_unit":0,"break_even_price":0,"break_even_units":0,"cost_breakdown_pct":[{"category":"str","pct":0}],"strengths":["s1"],"weaknesses":["w1"],"recommendations":["r1","r2","r3"],"next_batch_target":"str","summary":"str"}`);
+    const r=parseAI(resp);if(!r)throw new Error('parse');
+    showResult(r,{name,animal,count,sold,price,byproduct,mortality,mortalityRate,currency,costs,totalRevenue,totalCosts,grossProfit});
+  }catch(e){console.error(e);alert('Error. Please try again.');}
+  finally{document.getElementById('loading').style.display='none';document.getElementById('analyseBtn').disabled=false;}
+}
+function showResult(r,d){
+  const isP=r.verdict==='profit',isBE=r.verdict==='break-even';
+  document.getElementById('result').style.display='block';
+  document.getElementById('statStrip').innerHTML=`<div class="scard" data-icon="💵"><div class="scard-label">Revenue</div><div class="scard-value" style="color:#5dade2">${d.currency} ${fmtI(d.totalRevenue)}</div></div><div class="scard" data-icon="📊"><div class="scard-label">Costs</div><div class="scard-value" style="color:#e74c3c">${d.currency} ${fmtI(d.totalCosts)}</div></div><div class="scard" data-icon="${isP?'✅':isBE?'⚖️':'❌'}"><div class="scard-label">${isP?'Profit':isBE?'Break-even':'Loss'}</div><div class="scard-value" style="color:${isP?'#2ecc71':isBE?'var(--gold-light)':'#e74c3c'}">${d.currency} ${fmtI(Math.abs(d.grossProfit))}</div></div><div class="scard" data-icon="📈"><div class="scard-label">ROI</div><div class="scard-value" style="color:var(--gold-light)">${fmt(r.roi_pct)}%</div></div>`;
+  const revPct=d.totalRevenue>0?Math.min((d.totalRevenue/Math.max(d.totalRevenue,d.totalCosts))*100,100):0;
+  document.getElementById('meterFill').style.background=isP?'linear-gradient(90deg,#27ae60,#2ecc71)':'linear-gradient(90deg,var(--danger),#e74c3c)';
+  document.getElementById('costVal').textContent=d.currency+' '+fmtI(d.totalCosts);
+  document.getElementById('revVal').textContent=d.currency+' '+fmtI(d.totalRevenue);
+  document.getElementById('verdict').textContent=isP?'✅ '+fmt(r.profit_margin_pct)+'% margin':isBE?'⚖️ Break-even':'❌ Loss';
+  setTimeout(()=>{document.getElementById('meterFill').style.width=revPct+'%';},100);
+  const colors=['#27ae60','#e74c3c','#f39c12','#2980b9','#8e44ad','#16a085','#d35400','#7f8c8d'];
+  document.getElementById('resultGrid').innerHTML=`<div class="rblock"><h4>📊 Key Metrics</h4><ul><li>Cost/unit: <strong>${d.currency} ${fmt(r.cost_per_unit)}</strong></li><li>Revenue/unit: <strong>${d.currency} ${fmt(r.revenue_per_unit)}</strong></li><li>Break-even price: <strong>${d.currency} ${fmt(r.break_even_price)}</strong></li><li>Mortality rate: <strong>${d.mortalityRate}%</strong></li></ul></div><div class="rblock"><h4>🥧 Cost Breakdown</h4>${(r.cost_breakdown_pct||[]).map((item,i)=>`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span>${item.category}</span><span style="font-weight:600;color:${colors[i%8]}">${fmt(item.pct)}%</span></div><div style="height:5px;background:rgba(255,255,255,0.06);border-radius:3px"><div style="height:100%;width:${Math.min(item.pct||0,100)}%;background:${colors[i%8]};border-radius:3px"></div></div></div>`).join('')}</div>${r.strengths?.length?`<div class="rblock good"><h4>💪 Strengths</h4><ul>${r.strengths.map(s=>'<li>'+escHtml(s)+'</li>').join('')}</ul></div>`:''} ${r.weaknesses?.length?`<div class="rblock warn"><h4>⚠️ Improve</h4><ul>${r.weaknesses.map(w=>'<li>'+escHtml(w)+'</li>').join('')}</ul></div>`:''}<div class="rblock full"><h4>🎯 Recommendations</h4><ul>${(r.recommendations||[]).map(rec=>'<li>'+escHtml(rec)+'</li>').join('')}</ul></div><div class="rblock gold full"><h4>🚀 Next Batch Target</h4><p>${escHtml(r.next_batch_target||'—')}</p><p style="margin-top:7px;color:var(--muted);font-size:12px">${escHtml(r.summary||'')}</p></div>`;
+  save('profit',[{id:Date.now(),batchName:d.name,animalType:d.animal,verdict:r.verdict,grossProfit:d.grossProfit,totalRevenue:d.totalRevenue,totalCosts:d.totalCosts,roi:r.roi_pct,currency:d.currency,date:new Date().toLocaleDateString(),data:d,result:r},...DS('profit')].slice(0,20));
+  renderHist();document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+function renderHist(){
+  const el=document.getElementById('histList');const h=DS('profit');
+  if(!h.length){el.innerHTML='<div class="hist-empty">No batches yet.</div>';return;}
+  el.innerHTML='<div class="hist-list">'+h.slice(0,6).map(e=>`<div class="hist-item"><div class="hist-icon">${e.verdict==='profit'?'📈':e.verdict==='break-even'?'⚖️':'📉'}</div><div class="hist-info"><div class="hist-name">${escHtml(e.batchName)}</div><div class="hist-meta">${e.animalType} · ${e.date} · ROI ${fmt(e.roi)}%</div></div><span style="font-size:12px;font-weight:700;color:${e.verdict==='profit'?'#2ecc71':'#e74c3c'}">${e.verdict==='profit'?'+':'-'}${e.currency} ${fmtI(Math.abs(e.grossProfit||0))}</span></div>`).join('')+'</div>';
+  const items=el.querySelectorAll('.hist-item');
+  DS('profit').slice(0,6).forEach((entry,i)=>{if(items[i])items[i].onclick=()=>showResult(entry.result,entry.data);});
+}
+clearForm();renderHist();
+
+initShared('profit');
+</script>
+</body></html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Animal Registry & Health Records</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(124,92,58,0.12);border-color:rgba(124,92,58,0.28);color:#d4956a">🐄 Animals</div><h2>Animal Registry & <em>Health Records</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+  <button class="btn btn-green btn-sm" onclick="openModal()">+ Add Animal</button>
+  <div class="sw" style="min-width:150px"><select id="filterType" onchange="renderList()"><option value="">All Types</option><option>Broiler</option><option>Layer</option><option>Chick</option><option>Bull</option><option>Dairy Cow</option><option>Goat</option><option>Sheep</option><option>Tilapia</option><option>Catfish</option></select></div>
+  <input type="text" id="searchInput" placeholder="🔍 Search ID or name..." onkeyup="renderList()" style="flex:1;min-width:180px">
+</div>
+<div id="animalAlerts"></div>
+<div class="card-grid" id="animalGrid"></div>
+<div class="hist-empty" id="emptyMsg">No animals yet. Click "Add Animal" to start.</div>
+<div class="modal-overlay" id="animalModal">
+  <div class="modal" style="max-width:520px">
+    <h3 id="modalTitle">Add Animal</h3><p class="modal-sub">Register an individual animal with health tracking.</p>
+    <div class="modal-fields" style="grid-template-columns:1fr 1fr">
+      <input type="text" id="an-id" placeholder="🔖 Animal ID (e.g. B001)"><input type="text" id="an-name" placeholder="📛 Name (optional)">
+      <div class="sw"><select id="an-type"><option value="">Type</option><option>Broiler</option><option>Layer</option><option>Chick</option><option>Bull</option><option>Dairy Cow</option><option>Goat</option><option>Sheep</option><option>Tilapia</option><option>Catfish</option></select></div><input type="text" id="an-breed" placeholder="🧬 Breed">
+      <input type="date" id="an-dob" placeholder="Date of Birth"><input type="number" id="an-weight" placeholder="⚖️ Weight (kg)" step="0.1">
+      <div class="sw"><select id="an-sex"><option value="">Sex</option><option>Male</option><option>Female</option></select></div><div class="sw"><select id="an-status"><option value="Active">Active</option><option>Sick</option><option>Pregnant</option><option>Sold</option><option>Deceased</option></select></div>
+      <input type="date" id="an-last-vac" placeholder="Last Vaccination"><input type="date" id="an-next-vac" placeholder="Next Vaccination">
+      <input type="date" id="an-last-deworm" placeholder="Last Deworming"><input type="text" id="an-tag" placeholder="🏷️ Ear Tag / RFID">
+      <input type="text" id="an-notes" placeholder="📝 Notes" style="grid-column:1/-1">
+    </div>
+    <input type="hidden" id="an-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="closeModal()">Cancel</button><button class="modal-save" onclick="saveAnimal()">Save Animal</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="healthModal">
+  <div class="modal"><h3>Add Health Event</h3><p class="modal-sub" id="healthSub">Recording event</p>
+    <div class="modal-fields">
+      <div class="sw"><select id="he-type"><option value="vaccination">💉 Vaccination</option><option value="treatment">💊 Treatment</option><option value="deworming">🪱 Deworming</option><option value="weighing">⚖️ Weight Check</option><option value="illness">🤒 Illness</option><option value="note">📝 Note</option></select></div>
+      <input type="date" id="he-date"><input type="text" id="he-desc" placeholder="Drug used / Weight / Description"><input type="number" id="he-cost" placeholder="Cost (optional)" step="0.01">
+    </div>
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('healthModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveHealth()">Save Event</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+let healthTarget=null;
+function openModal(id){
+  const modal=document.getElementById('animalModal');
+  document.getElementById('modalTitle').textContent=id?'Edit Animal':'Add Animal';
+  modal.dataset.editId=id||'';
+  if(id){const a=DS('animals').find(x=>x.id===id);if(a){document.getElementById('an-id').value=a.id;document.getElementById('an-name').value=a.name||'';document.getElementById('an-type').value=a.type||'';document.getElementById('an-breed').value=a.breed||'';document.getElementById('an-dob').value=a.dob||'';document.getElementById('an-weight').value=a.weight||'';document.getElementById('an-sex').value=a.sex||'';document.getElementById('an-status').value=a.status||'Active';document.getElementById('an-last-vac').value=a.last_vac||'';document.getElementById('an-next-vac').value=a.next_vac||'';document.getElementById('an-last-deworm').value=a.last_deworm||'';document.getElementById('an-tag').value=a.tag||'';document.getElementById('an-notes').value=a.notes||'';}}
+  else{modal.querySelectorAll('input,select').forEach(el=>el.value='');document.getElementById('an-status').value='Active';}
+  modal.classList.add('open');
+}
+function closeModal(){document.getElementById('animalModal').classList.remove('open');}
+function saveAnimal(){
+  const id=document.getElementById('an-id').value.trim();if(!id){alert('Please enter an Animal ID.');return;}
+  const editId=document.getElementById('animalModal').dataset.editId;
+  const animal={id,name:document.getElementById('an-name').value.trim(),type:document.getElementById('an-type').value,breed:document.getElementById('an-breed').value.trim(),dob:document.getElementById('an-dob').value,weight:document.getElementById('an-weight').value,sex:document.getElementById('an-sex').value,status:document.getElementById('an-status').value,last_vac:document.getElementById('an-last-vac').value,next_vac:document.getElementById('an-next-vac').value,last_deworm:document.getElementById('an-last-deworm').value,tag:document.getElementById('an-tag').value.trim(),notes:document.getElementById('an-notes').value.trim(),registered:editId?(DS('animals').find(x=>x.id===editId)||{}).registered:new Date().toLocaleDateString(),health_events:editId?(DS('animals').find(x=>x.id===editId)||{}).health_events||[]:[],};
+  let animals=DS('animals');if(editId){const idx=animals.findIndex(x=>x.id===editId);if(idx>=0)animals[idx]=animal;else animals.unshift(animal);}else{if(animals.find(x=>x.id===id)){alert('Animal ID already exists.');return;}animals.unshift(animal);}
+  save('animals',animals);closeModal();renderList();
+}
+function deleteAnimal(id){if(!confirm('Delete this animal?'))return;save('animals',DS('animals').filter(x=>x.id!==id));renderList();}
+function openHealth(animalId){healthTarget=animalId;document.getElementById('healthSub').textContent='Animal: '+animalId;document.getElementById('he-date').value=today();document.getElementById('he-desc').value='';document.getElementById('he-cost').value='';document.getElementById('healthModal').classList.add('open');}
+function saveHealth(){if(!healthTarget)return;const animals=DS('animals');const a=animals.find(x=>x.id===healthTarget);if(!a)return;if(!a.health_events)a.health_events=[];a.health_events.unshift({type:document.getElementById('he-type').value,date:document.getElementById('he-date').value,description:document.getElementById('he-desc').value.trim(),cost:parseFloat(document.getElementById('he-cost').value)||0});save('animals',animals);document.getElementById('healthModal').classList.remove('open');renderList();}
+function renderList(){
+  const ft=document.getElementById('filterType').value;const search=document.getElementById('searchInput').value.toLowerCase();
+  let list=DS('animals').filter(a=>{if(ft&&a.type!==ft)return false;if(search&&!a.id.toLowerCase().includes(search)&&!(a.name||'').toLowerCase().includes(search))return false;return true;});
+  const grid=document.getElementById('animalGrid');const empty=document.getElementById('emptyMsg');
+  const vaccAlerts=DS('animals').filter(a=>{if(!a.next_vac)return false;return Math.ceil((new Date(a.next_vac)-new Date())/86400000)<=3;});
+  document.getElementById('animalAlerts').innerHTML=vaccAlerts.length?`<div class="alert alert-warn">💉 Vaccinations due in ≤3 days: ${vaccAlerts.map(a=>a.id).join(', ')}</div>`:'';
+  if(!list.length){grid.innerHTML='';empty.style.display='block';return;}empty.style.display='none';
+  const statusColor={Active:'var(--green)',Sick:'#e74c3c',Pregnant:'var(--gold-light)',Sold:'var(--muted)',Deceased:'#7f8c8d'};
+  const typeEmoji={Broiler:'🐔',Layer:'🥚',Chick:'🐣',Bull:'🐂','Dairy Cow':'🥛',Goat:'🐐',Sheep:'🐑',Tilapia:'🐟',Catfish:'🐠'};
+  grid.innerHTML=list.map(a=>{
+    const nvd=a.next_vac?Math.ceil((new Date(a.next_vac)-new Date())/86400000):null;
+    const vacAlert=nvd!==null&&nvd<=7?`<div class="alert alert-warn" style="font-size:11px;padding:7px 11px;margin-bottom:8px">💉 Vaccination ${nvd<=0?'OVERDUE':'in '+nvd+' days'}</div>`:'';
+    const events=(a.health_events||[]).slice(0,2);
+    return`<div class="data-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-size:26px">${typeEmoji[a.type]||'🐾'}</div><div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-top:4px">${escHtml(a.id)}${a.name?' · '+escHtml(a.name):''}</div><div style="font-size:11px;color:var(--muted)">${escHtml(a.breed||a.type||'—')}${a.sex?' · '+a.sex:''}</div></div><span style="padding:3px 9px;border-radius:10px;font-size:10px;font-weight:600;color:${statusColor[a.status]||'var(--green)'};background:rgba(82,183,136,0.08)">${a.status||'Active'}</span></div>${vacAlert}<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;font-size:11px;color:var(--muted)">${a.dob?`<div>🎂 <span style="color:var(--cream)">${a.dob}</span></div>`:''} ${a.weight?`<div>⚖️ <span style="color:var(--cream)">${a.weight}kg</span></div>`:''} ${a.last_vac?`<div>💉 <span style="color:var(--cream)">${a.last_vac}</span></div>`:''} ${a.last_deworm?`<div>🪱 <span style="color:var(--cream)">${a.last_deworm}</span></div>`:''}</div>${events.length?`<div style="font-size:11px;color:var(--muted);margin-bottom:9px">${events.map(e=>`<div style="padding:3px 0;border-bottom:1px solid rgba(82,183,136,0.06)">${e.date} · ${e.type} — ${escHtml(e.description)}</div>`).join('')}</div>`:''}<div style="display:flex;gap:5px;flex-wrap:wrap"><button onclick="openHealth('${a.id}')" style="flex:1;padding:6px 9px;background:rgba(82,183,136,0.1);border:1px solid rgba(82,183,136,0.2);border-radius:7px;color:var(--green);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">+ Health Event</button><button onclick="openModal('${a.id}')" style="padding:6px 9px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Edit</button><button onclick="deleteAnimal('${a.id}')" style="padding:6px 9px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:7px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button></div></div>`;
+  }).join('');
+}
+renderList();
+
+initShared('animals');
+</script></body></html>

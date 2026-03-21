@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Breeding & Pregnancy Tracker</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(142,68,173,0.1);border-color:rgba(142,68,173,0.25);color:#bb8fce">🐣 Breeding</div><h2>Breeding & Pregnancy <em>Tracker</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+  <button class="btn btn-purple btn-sm" onclick="openModal()">+ Log Breeding Event</button>
+  <div class="ftabs"><div class="ftab active" id="bf-all" onclick="filterList('all')">All</div><div class="ftab" id="bf-pregnant" onclick="filterList('pregnant')">Pregnant</div><div class="ftab" id="bf-due" onclick="filterList('due')">Due Soon</div><div class="ftab" id="bf-delivered" onclick="filterList('delivered')">Delivered</div></div>
+</div>
+<div id="breedAlerts" style="margin-bottom:12px"></div>
+<div class="card-grid" id="breedGrid"></div>
+<div class="hist-empty" id="emptyMsg">No breeding records yet.</div>
+<div class="modal-overlay" id="breedModal">
+  <div class="modal"><h3 id="modalTitle">Log Breeding Event</h3><p class="modal-sub">Record mating, pregnancy or birth.</p>
+    <div class="modal-fields">
+      <div class="sw"><select id="br-event"><option value="mating">🐄 Mating</option><option value="pregnancy">🤰 Pregnancy Confirmed</option><option value="birth">🐣 Birth/Delivery</option><option value="miscarriage">💔 Miscarriage</option></select></div>
+      <input type="text" id="br-female" placeholder="Female Animal ID / Name"><input type="text" id="br-male" placeholder="Male Animal ID (optional)">
+      <input type="date" id="br-date" placeholder="Event Date"><input type="number" id="br-gestation" placeholder="Gestation days (e.g. 280 for cow, 21 for chicken)" min="1">
+      <input type="number" id="br-offspring" placeholder="Number of offspring (for births)" min="0"><input type="text" id="br-notes" placeholder="Notes">
+    </div>
+    <input type="hidden" id="br-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('breedModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveBreed()">Save Record</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+let breedFilter='all';
+function openModal(id){const modal=document.getElementById('breedModal');modal.dataset.editId=id||'';if(id){const b=DS('breeding').find(x=>x.id===id);if(b){document.getElementById('br-event').value=b.event;document.getElementById('br-female').value=b.female;document.getElementById('br-male').value=b.male||'';document.getElementById('br-date').value=b.date;document.getElementById('br-gestation').value=b.gestation||'';document.getElementById('br-offspring').value=b.offspring||'';document.getElementById('br-notes').value=b.notes||'';}}else{modal.querySelectorAll('input,select').forEach(el=>el.value='');document.getElementById('br-date').value=today();}modal.classList.add('open');}
+function saveBreed(){const event=document.getElementById('br-event').value;const female=document.getElementById('br-female').value.trim();const date=document.getElementById('br-date').value;if(!female||!date){alert('Please enter female animal and date.');return;}const gestation=parseInt(document.getElementById('br-gestation').value)||0;const expectedBirth=gestation&&date?new Date(new Date(date).getTime()+gestation*86400000).toISOString().split('T')[0]:null;const editId=document.getElementById('breedModal').dataset.editId;const entry={id:editId||Date.now().toString(),event,female,male:document.getElementById('br-male').value.trim(),date,gestation,expected_birth:expectedBirth,offspring:parseInt(document.getElementById('br-offspring').value)||0,notes:document.getElementById('br-notes').value.trim(),status:event==='birth'?'delivered':event==='mating'||event==='pregnancy'?'pregnant':'unknown'};let breeding=DS('breeding');if(editId){const idx=breeding.findIndex(x=>x.id===editId);if(idx>=0)breeding[idx]=entry;else breeding.unshift(entry);}else{breeding.unshift(entry);}save('breeding',breeding);document.getElementById('breedModal').classList.remove('open');renderList();}
+function deleteBreed(id){if(!confirm('Delete?'))return;save('breeding',DS('breeding').filter(x=>x.id!==id));renderList();}
+function filterList(f){breedFilter=f;['all','pregnant','due','delivered'].forEach(x=>document.getElementById('bf-'+x)?.classList.toggle('active',x===f));renderList();}
+function renderList(){
+  let h=DS('breeding');
+  if(breedFilter==='pregnant')h=h.filter(b=>b.status==='pregnant');
+  else if(breedFilter==='due')h=h.filter(b=>{if(!b.expected_birth||b.status!=='pregnant')return false;return Math.ceil((new Date(b.expected_birth)-new Date())/86400000)<=14;});
+  else if(breedFilter==='delivered')h=h.filter(b=>b.status==='delivered');
+  const dueSoon=DS('breeding').filter(b=>{if(!b.expected_birth||b.status!=='pregnant')return false;return Math.ceil((new Date(b.expected_birth)-new Date())/86400000)<=7;});
+  document.getElementById('breedAlerts').innerHTML=dueSoon.length?`<div class="alert alert-info">🐣 Births expected this week: ${dueSoon.map(b=>escHtml(b.female)).join(', ')}</div>`:'';
+  const grid=document.getElementById('breedGrid');const empty=document.getElementById('emptyMsg');
+  if(!h.length){grid.innerHTML='';empty.style.display='block';return;}empty.style.display='none';
+  grid.innerHTML=h.map(b=>{const daysToEvent=b.expected_birth?Math.ceil((new Date(b.expected_birth)-new Date())/86400000):null;const statusColor={pregnant:'var(--gold-light)',delivered:'var(--green)',unknown:'var(--muted)'};return`<div class="data-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-size:22px">${b.event==='birth'?'🐣':b.event==='pregnancy'?'🤰':'🐄'}</div><div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-top:4px">${escHtml(b.female)}</div><div style="font-size:11px;color:var(--muted)">${b.event} · ${b.date}</div></div><span style="padding:3px 9px;border-radius:10px;font-size:10px;font-weight:600;color:${statusColor[b.status]||'var(--muted)'};background:rgba(82,183,136,0.08)">${b.status}</span></div>${b.male?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">♂️ <span style="color:var(--cream)">${escHtml(b.male)}</span></div>`:''} ${b.expected_birth?`<div style="font-size:11px;margin-bottom:6px;color:${daysToEvent<=7?'#e74c3c':daysToEvent<=14?'var(--warn)':'var(--muted)'}">📅 Expected: <span style="color:var(--cream)">${b.expected_birth}</span>${daysToEvent!==null?` (${daysToEvent<=0?'OVERDUE':daysToEvent+' days'})`:''}</div>`:''} ${b.offspring?`<div style="font-size:11px;color:var(--muted)">🐣 Offspring: <span style="color:var(--green)">${b.offspring}</span></div>`:''} ${b.notes?`<div style="font-size:11px;color:var(--muted);margin-top:6px">${escHtml(b.notes)}</div>`:''}<div style="display:flex;gap:5px;margin-top:10px"><button onclick="openModal('${b.id}')" style="flex:1;padding:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Edit</button><button onclick="deleteBreed('${b.id}')" style="padding:6px 9px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:7px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button></div></div>`;}).join('');
+}
+renderList();
+
+initShared('breeding');
+</script></body></html>

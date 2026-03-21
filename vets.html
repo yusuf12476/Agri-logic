@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Veterinary Directory</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(192,57,43,0.1);border-color:rgba(192,57,43,0.25);color:#e74c3c">🏥 Vets</div><h2>Veterinary <em>Directory</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+  <button class="btn btn-green btn-sm" onclick="openVetModal()">+ Add Vet Contact</button>
+  <button class="btn btn-ghost btn-sm" onclick="openVisitModal()">+ Log Vet Visit</button>
+</div>
+<div class="card-grid" id="vetGrid"></div>
+<div class="hist-empty" id="vetEmpty">No vets saved yet.</div>
+<div class="hist-section"><div class="hist-title">🏥 Vet Visit History</div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Vet</th><th>Animal(s)</th><th>Reason</th><th>Treatment</th><th>Cost</th><th>Follow-up</th><th></th></tr></thead><tbody id="vetVisitBody"></tbody></table></div>
+  <div class="hist-empty" id="visitEmpty">No vet visits logged yet.</div>
+</div>
+<div class="modal-overlay" id="vetModal">
+  <div class="modal"><h3 id="vetModalTitle">Add Vet Contact</h3><p class="modal-sub">Save a veterinarian or animal health worker.</p>
+    <div class="modal-fields">
+      <input type="text" id="vt-name" placeholder="Full Name"><input type="text" id="vt-phone" placeholder="📱 Phone / WhatsApp">
+      <input type="text" id="vt-specialty" placeholder="Specialty (e.g. Poultry, Large Animals, General)">
+      <input type="text" id="vt-location" placeholder="📍 Location / Clinic">
+      <input type="text" id="vt-hours" placeholder="Working hours (e.g. Mon-Fri 8am-5pm)">
+      <input type="text" id="vt-notes" placeholder="Notes (e.g. Also sells vaccines)">
+    </div>
+    <input type="hidden" id="vt-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('vetModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveVet()">Save Vet</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="visitModal">
+  <div class="modal"><h3>Log Vet Visit</h3><p class="modal-sub">Record an animal health consultation.</p>
+    <div class="modal-fields">
+      <input type="date" id="vv-date">
+      <div class="sw"><select id="vv-vet"><option value="">Select Vet</option></select></div>
+      <input type="text" id="vv-animals" placeholder="Animal IDs treated">
+      <input type="text" id="vv-reason" placeholder="Reason / Diagnosis">
+      <input type="text" id="vv-treatment" placeholder="Treatment / Drugs given">
+      <input type="number" id="vv-cost" placeholder="Cost" step="0.01">
+      <input type="date" id="vv-followup" placeholder="Follow-up date">
+      <input type="text" id="vv-notes" placeholder="Notes">
+    </div>
+    <input type="hidden" id="vv-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('visitModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveVisit()">Save Visit</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+function openVetModal(id){const modal=document.getElementById('vetModal');document.getElementById('vetModalTitle').textContent=id?'Edit Vet':'Add Vet Contact';modal.dataset.editId=id||'';if(id){const v=DS('vets').find(x=>x.id===id);if(v){['vt-name','vt-phone','vt-specialty','vt-location','vt-hours','vt-notes'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=v[k.replace('vt-','')]||'';});}}else{modal.querySelectorAll('input').forEach(el=>el.value='');}modal.classList.add('open');}
+function saveVet(){const name=document.getElementById('vt-name').value.trim();if(!name){alert('Please enter a name.');return;}const editId=document.getElementById('vetModal').dataset.editId;const vet={id:editId||Date.now().toString(),name,phone:document.getElementById('vt-phone').value.trim(),specialty:document.getElementById('vt-specialty').value.trim(),location:document.getElementById('vt-location').value.trim(),hours:document.getElementById('vt-hours').value.trim(),notes:document.getElementById('vt-notes').value.trim()};let vets=DS('vets');if(editId){const idx=vets.findIndex(x=>x.id===editId);if(idx>=0)vets[idx]=vet;else vets.unshift(vet);}else{vets.unshift(vet);}save('vets',vets);document.getElementById('vetModal').classList.remove('open');renderVets();updateVetSelect();}
+function deleteVet(id){if(!confirm('Delete this vet?'))return;save('vets',DS('vets').filter(x=>x.id!==id));renderVets();}
+function renderVets(){const h=DS('vets');const grid=document.getElementById('vetGrid');const empty=document.getElementById('vetEmpty');if(!h.length){grid.innerHTML='';empty.style.display='block';return;}empty.style.display='none';grid.innerHTML=h.map(v=>`<div class="data-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-size:24px">🏥</div><div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-top:4px">${escHtml(v.name)}</div><div style="font-size:11px;color:var(--green)">${escHtml(v.specialty||'General Practice')}</div></div></div>${v.phone?`<div style="font-size:12px;color:var(--muted);margin-bottom:5px">📱 <span style="color:var(--cream)">${escHtml(v.phone)}</span></div>`:''} ${v.location?`<div style="font-size:12px;color:var(--muted);margin-bottom:5px">📍 <span style="color:var(--cream)">${escHtml(v.location)}</span></div>`:''} ${v.hours?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">⏰ <span style="color:var(--cream)">${escHtml(v.hours)}</span></div>`:''} ${v.notes?`<div style="font-size:11px;color:var(--muted);margin-bottom:9px">${escHtml(v.notes)}</div>`:''}<div style="display:flex;gap:5px">${v.phone?`<a href="tel:${v.phone}" style="flex:1;padding:6px;background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.2);border-radius:7px;color:#2ecc71;font-size:11px;text-align:center;text-decoration:none;font-family:'DM Sans',sans-serif">📞 Call</a>`:''}<button onclick="openVetModal('${v.id}')" style="padding:6px 9px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Edit</button><button onclick="deleteVet('${v.id}')" style="padding:6px 9px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:7px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button></div></div>`).join('');}
+function updateVetSelect(){const sel=document.getElementById('vv-vet');if(!sel)return;sel.innerHTML='<option value="">Select Vet</option>'+DS('vets').map(v=>`<option value="${escHtml(v.name)}">${escHtml(v.name)}</option>`).join('');}
+function openVisitModal(id){const modal=document.getElementById('visitModal');modal.dataset.editId=id||'';if(id){const v=DS('vetvisits').find(x=>x.id===id);if(v){document.getElementById('vv-date').value=v.date;document.getElementById('vv-vet').value=v.vet||'';document.getElementById('vv-animals').value=v.animals||'';document.getElementById('vv-reason').value=v.reason||'';document.getElementById('vv-treatment').value=v.treatment||'';document.getElementById('vv-cost').value=v.cost||'';document.getElementById('vv-followup').value=v.followup||'';document.getElementById('vv-notes').value=v.notes||'';}}else{modal.querySelectorAll('input,select').forEach(el=>el.value='');document.getElementById('vv-date').value=today();}modal.classList.add('open');}
+function saveVisit(){const date=document.getElementById('vv-date').value;const animals=document.getElementById('vv-animals').value.trim();if(!date||!animals){alert('Please enter date and animals treated.');return;}const editId=document.getElementById('visitModal').dataset.editId;const visit={id:editId||Date.now().toString(),date,vet:document.getElementById('vv-vet').value,animals,reason:document.getElementById('vv-reason').value.trim(),treatment:document.getElementById('vv-treatment').value.trim(),cost:parseFloat(document.getElementById('vv-cost').value)||0,followup:document.getElementById('vv-followup').value,notes:document.getElementById('vv-notes').value.trim()};let visits=DS('vetvisits');if(editId){const idx=visits.findIndex(x=>x.id===editId);if(idx>=0)visits[idx]=visit;else visits.unshift(visit);}else{visits.unshift(visit);}save('vetvisits',visits);document.getElementById('visitModal').classList.remove('open');renderVisits();}
+function deleteVisit(id){save('vetvisits',DS('vetvisits').filter(x=>x.id!==id));renderVisits();}
+function renderVisits(){const h=DS('vetvisits');const body=document.getElementById('vetVisitBody');const empty=document.getElementById('visitEmpty');if(!h.length){body.innerHTML='';empty.style.display='block';return;}empty.style.display='none';body.innerHTML=h.slice(0,20).map(v=>`<tr><td>${v.date}</td><td style="font-weight:500">${escHtml(v.vet||'—')}</td><td>${escHtml(v.animals)}</td><td>${escHtml(v.reason||'—')}</td><td>${escHtml(v.treatment||'—')}</td><td>${v.cost?fmtI(v.cost):'—'}</td><td style="color:${v.followup&&v.followup<today()?'#e74c3c':'var(--muted)'}">${v.followup||'—'}</td><td><button onclick="deleteVisit('${v.id}')" style="padding:3px 8px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:5px;color:#e74c3c;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('');}
+updateVetSelect();renderVets();renderVisits();
+
+initShared('vets');
+</script></body></html>

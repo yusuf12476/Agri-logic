@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Monthly & Annual Farm Reports</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(46,134,171,0.1);border-color:rgba(46,134,171,0.25);color:#54c6eb">📊 Reports</div><h2>Monthly & Annual <em>Farm Reports</em></h2></div>
+
+<div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3>Generate Report</h3></div><div class="card-body">
+  <div class="g3"><div class="field-group"><label class="field-label">Report Type</label><div class="sw"><select id="rpt-type"><option value="monthly">Monthly Summary</option><option value="quarterly">Quarterly Report</option><option value="annual">Annual Review</option><option value="livestock">Livestock Report</option><option value="financial">Financial Report</option></select></div></div><div class="field-group"><label class="field-label">Period</label><div class="sw"><select id="rpt-period"><option value="2026-03">March 2026</option><option value="2026-02">February 2026</option><option value="2026-01">January 2026</option><option value="2025-12">December 2025</option><option value="2025-Q4">Q4 2025</option><option value="2025">Full Year 2025</option></select></div></div><div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="rpt-currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div></div>
+  <button class="btn btn-blue btn-full" id="rptBtn" onclick="runReport()">📊 Generate AI Farm Report</button>
+</div></div>
+<div class="loading-state" id="loading"><div class="spinner" style="border-top-color:#54c6eb"></div><strong>Generating report...</strong><p>AI is compiling your farm data</p></div>
+<div class="result-section" id="result">
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <button class="btn btn-wa btn-sm" onclick="shareReport()">📱 Share on WhatsApp</button>
+    <button class="btn btn-ghost btn-sm" onclick="copyReport()">📋 Copy Report</button>
+  </div>
+  <div id="rptContent"></div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+let lastReport='';
+async function runReport(){
+  const type=document.getElementById('rpt-type').value;const period=document.getElementById('rpt-period').value;const currency=document.getElementById('rpt-currency').value;
+  document.getElementById('loading').style.display='block';document.getElementById('result').style.display='none';document.getElementById('rptBtn').disabled=true;
+  try{
+    const books=DS('books');const animals=DS('animals');const batches=DS('profit');const tasks=DS('tasks');const milk=DS('milk');const eggs=DS('eggs');const inv=DS('inventory');
+    const monthKey=period.slice(0,7);const monthBooks=books.filter(b=>(b.date||'').startsWith(monthKey));
+    const income=monthBooks.filter(b=>b.type==='income').reduce((s,b)=>s+(b.amount||0),0);
+    const expense=monthBooks.filter(b=>b.type==='expense').reduce((s,b)=>s+(b.amount||0),0);
+    const completedTasks=tasks.filter(t=>t.done).length;const pendingTasks=tasks.filter(t=>!t.done).length;
+    const totalMilk=milk.filter(e=>(e.date||'').startsWith(monthKey)).reduce((s,e)=>s+(e.total||0),0);
+    const totalEggs=eggs.filter(e=>(e.date||'').startsWith(monthKey)).reduce((s,e)=>s+(e.count||0),0);
+    const lowStock=inv.filter(x=>x.alert>0&&x.qty<=x.alert).length;
+    const p=getProfile();
+    const prompt=`You are AgriLogic farm business analyst. Generate a comprehensive ${type} for period: ${period}.
+${langNote()}
+Farm: ${p.name||'Farm'}, Location: ${p.location||'East Africa'}, Livestock: ${p.animal||'mixed'}, Crops: ${p.crops||'mixed'}
+Data:
+- Registered animals: ${animals.length}
+- Income (${period}): ${currency} ${fmtI(income)}
+- Expenses (${period}): ${currency} ${fmtI(expense)}
+- Net P&L: ${currency} ${fmtI(income-expense)}
+- Completed tasks: ${completedTasks}, Pending: ${pendingTasks}
+- Milk production: ${fmt(totalMilk)}L
+- Eggs collected: ${fmtI(totalEggs)}
+- Profit batches tracked: ${batches.length}
+- Low stock alerts: ${lowStock}
+Generate a clear, practical report with sections: Executive Summary, Financial Performance, Livestock Performance, Key Achievements, Areas of Concern, and Recommendations. Write for a real East African farmer. Be concise but actionable.`;
+    const resp=await callAI(prompt);lastReport=resp;
+    document.getElementById('result').style.display='block';
+    document.getElementById('rptContent').innerHTML=`<div class="form-card"><div class="card-body"><pre style="white-space:pre-wrap;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.7;color:rgba(245,240,232,0.9)">${escHtml(resp)}</pre></div></div>`;
+    document.getElementById('result').scrollIntoView({behavior:'smooth'});
+  }catch(e){console.error(e);alert('Error generating report.');}
+  finally{document.getElementById('loading').style.display='none';document.getElementById('rptBtn').disabled=false;}
+}
+function shareReport(){if(!lastReport){alert('Generate a report first.');return;}shareWhatsApp('🌿 AgriLogic Farm Report
+
+'+lastReport);}
+function copyReport(){if(!lastReport){alert('Generate a report first.');return;}navigator.clipboard.writeText(lastReport).then(()=>alert('Report copied to clipboard!'));}
+
+initShared('reports');
+</script></body></html>

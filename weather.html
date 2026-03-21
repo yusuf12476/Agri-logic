@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Weather & Farm Forecasts</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(46,134,171,0.1);border-color:rgba(46,134,171,0.25);color:#54c6eb">🌤️ Weather</div><h2>Weather & Farm <em>Forecasts</em></h2></div>
+
+<div class="form-card"><div class="card-head"><span class="card-icon">📍</span><h3>Location & Context</h3></div><div class="card-body">
+  <div class="g3"><div class="field-group"><label class="field-label">Location</label><input type="text" id="loc" placeholder="e.g. Nakuru, Kenya"></div><div class="field-group"><label class="field-label">Month</label><div class="sw"><select id="month"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div></div><div class="field-group"><label class="field-label">Active Crops / Animals</label><input type="text" id="crops" placeholder="e.g. Maize week 4, 500 broilers"></div></div>
+  <div class="g2"><div class="field-group"><label class="field-label">Current Conditions</label><div class="sw"><select id="conditions"><option value="dry">Very dry</option><option value="normal">Normal</option><option value="rainy">Rainy / wet</option><option value="unusual">Unusual weather</option></select></div></div><div class="field-group"><label class="field-label">Main Concern</label><div class="sw"><select id="concern"><option value="planting">When to plant</option><option value="irrigation">Irrigation planning</option><option value="harvest">Harvest timing</option><option value="disease">Disease risk</option><option value="general">General forecast</option></select></div></div></div>
+  <button class="btn btn-blue btn-full" id="wxBtn" onclick="runWeather()">🌤️ Get Weather Farming Advice</button>
+</div></div>
+<div class="loading-state" id="loading"><div class="spinner" style="border-top-color:#54c6eb"></div><strong>Analysing weather...</strong><p>Reviewing seasonal patterns for your region</p></div>
+<div class="result-section" id="result"></div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+async function aiPrompt(prompt, loadId, resultId, btnId, showFn) {
+  document.getElementById(loadId).style.display='block';
+  if(resultId) document.getElementById(resultId).style.display='none';
+  if(btnId) document.getElementById(btnId).disabled=true;
+  try { const resp=await callAI(prompt); const r=parseAI(resp); if(!r) throw new Error('parse'); showFn(r); }
+  catch(e) { console.error(e); alert('Error. Please try again.'); }
+  finally { document.getElementById(loadId).style.display='none'; if(btnId) document.getElementById(btnId).disabled=false; }
+}
+
+function runWeather(){
+  const loc=document.getElementById('loc').value.trim();if(!loc){alert('Please enter your location.');return;}
+  aiPrompt(`You are AgriLogic weather and farming advisor for East African farmers.
+${langNote()}
+Location: ${loc}, Month: ${document.getElementById('month').value}, Crops/Animals: ${document.getElementById('crops').value||'not specified'}, Current conditions: ${document.getElementById('conditions').value}, Concern: ${document.getElementById('concern').value}
+Respond ONLY with JSON:
+{"season_status":"str","rainfall_forecast":"Low/Average/High","temperature_trend":"str","farming_risk_level":"Low/Medium/High","immediate_actions":["action1","action2"],"this_week":["advice1"],"next_month":["advice1"],"crop_specific_alerts":["alert1"],"disease_risk":["risk1"],"what_to_plant_now":["crop1"],"what_to_avoid":["avoid1"],"harvest_timing":"str","irrigation_advice":"str","livestock_advice":"str","summary":"str"}`,
+  'loading','result','wxBtn',showResult);
+}
+function showResult(r){
+  const rColor={Low:'var(--green)',Medium:'var(--warn)',High:'#e74c3c'};const rainIcon={Low:'☀️',Average:'🌤️',High:'🌧️'};
+  const el=document.getElementById('result');el.style.display='block';
+  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(46,134,171,0.1),rgba(82,183,136,0.06));border:1px solid rgba(46,134,171,0.2);border-radius:17px;padding:22px;margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:12px"><div><div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:4px">📍 ${escHtml(document.getElementById('loc').value)}</div><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--cream)">${escHtml(r.season_status||'—')}</div></div><div style="display:flex;gap:10px"><div style="text-align:center"><div style="font-size:26px">${rainIcon[r.rainfall_forecast]||'🌤️'}</div><div style="font-size:10px;color:var(--muted)">${r.rainfall_forecast} Rain</div></div><div style="padding:9px 15px;background:rgba(${r.farming_risk_level==='High'?'192,57,43':r.farming_risk_level==='Medium'?'230,126,34':'82,183,136'},0.12);border-radius:11px;text-align:center"><div style="font-size:15px;font-weight:700;color:${rColor[r.farming_risk_level]||'var(--green)'}">${r.farming_risk_level}</div><div style="font-size:9px;color:var(--muted)">Farm Risk</div></div></div></div><p style="font-size:13px;color:rgba(245,240,232,0.85)">${escHtml(r.summary||'')}</p></div><div class="rgrid"><div class="rblock danger"><h4 style="color:#f1948a">🚨 Immediate Actions</h4><ul>${(r.immediate_actions||[]).map(a=>'<li>'+escHtml(a)+'</li>').join('')}</ul></div><div class="rblock"><h4>📅 This Week</h4><ul>${(r.this_week||[]).map(a=>'<li>'+escHtml(a)+'</li>').join('')}</ul></div>${r.what_to_plant_now?.length?`<div class="rblock good"><h4>🌱 Plant Now</h4><ul>${r.what_to_plant_now.map(c=>'<li>'+escHtml(c)+'</li>').join('')}</ul></div>`:''} ${r.what_to_avoid?.length?`<div class="rblock warn"><h4>🚫 Avoid Now</h4><ul>${r.what_to_avoid.map(a=>'<li>'+escHtml(a)+'</li>').join('')}</ul></div>`:''}${r.crop_specific_alerts?.length?`<div class="rblock warn"><h4>🌾 Crop Alerts</h4><ul>${r.crop_specific_alerts.map(a=>'<li>'+escHtml(a)+'</li>').join('')}</ul></div>`:''}${r.disease_risk?.length?`<div class="rblock warn"><h4>🦠 Disease Risk</h4><ul>${r.disease_risk.map(d=>'<li>'+escHtml(d)+'</li>').join('')}</ul></div>`:''}<div class="rblock"><h4>💧 Irrigation</h4><p>${escHtml(r.irrigation_advice||'—')}</p></div><div class="rblock"><h4>🐄 Livestock</h4><p>${escHtml(r.livestock_advice||'—')}</p></div>${r.harvest_timing?`<div class="rblock good full"><h4>🌾 Harvest Timing</h4><p>${escHtml(r.harvest_timing)}</p></div>`:''}${r.next_month?.length?`<div class="rblock full"><h4>📆 Next Month</h4><ul>${r.next_month.map(a=>'<li>'+escHtml(a)+'</li>').join('')}</ul></div>`:''}</div>`;
+  el.scrollIntoView({behavior:'smooth'});
+}
+document.getElementById('month').value=['January','February','March','April','May','June','July','August','September','October','November','December'][new Date().getMonth()];
+const p=getProfile();if(p.location)document.getElementById('loc').value=p.location;
+
+initShared('weather');
+</script></body></html>

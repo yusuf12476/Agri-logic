@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Supplier Directory</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(46,134,171,0.1);border-color:rgba(46,134,171,0.25);color:#54c6eb">🏬 Suppliers</div><h2>Supplier <em>Directory</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+  <button class="btn btn-green btn-sm" onclick="openModal()">+ Add Supplier</button>
+  <div class="sw" style="min-width:160px"><select id="supFilter" onchange="renderSuppliers()"><option value="">All Categories</option><option>Feed Dealer</option><option>Agrovet</option><option>Equipment</option><option>Seeds</option><option>Chemicals</option><option>Produce Buyer</option><option>Transport</option><option>Other</option></select></div>
+  <input type="text" id="supSearch" placeholder="🔍 Search..." onkeyup="renderSuppliers()" style="flex:1;min-width:160px">
+</div>
+<div class="card-grid" id="supplierGrid"></div>
+<div class="hist-empty" id="supplierEmpty">No suppliers saved yet.</div>
+<div class="modal-overlay" id="suppModal">
+  <div class="modal"><h3 id="suppTitle">Add Supplier</h3><p class="modal-sub">Save a supplier or service provider.</p>
+    <div class="modal-fields">
+      <input type="text" id="sp-name" placeholder="Business / Supplier Name">
+      <div class="sw"><select id="sp-category"><option>Feed Dealer</option><option>Agrovet</option><option>Equipment</option><option>Seeds</option><option>Chemicals</option><option>Produce Buyer</option><option>Transport</option><option>Other</option></select></div>
+      <input type="text" id="sp-contact" placeholder="📱 Phone / WhatsApp">
+      <input type="text" id="sp-location" placeholder="📍 Location / Town">
+      <input type="text" id="sp-products" placeholder="Products / Services offered">
+      <input type="number" id="sp-rating" placeholder="Rating 1-5 ⭐" min="1" max="5">
+      <input type="text" id="sp-notes" placeholder="Notes (delivery terms, credit, prices...)">
+    </div>
+    <input type="hidden" id="sp-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('suppModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveSupplier()">Save Supplier</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+function openModal(id){const modal=document.getElementById('suppModal');document.getElementById('suppTitle').textContent=id?'Edit Supplier':'Add Supplier';modal.dataset.editId=id||'';if(id){const s=DS('suppliers').find(x=>x.id===id);if(s){['sp-name','sp-category','sp-contact','sp-location','sp-products','sp-rating','sp-notes'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=s[k.replace('sp-','')]||'';});}}else{modal.querySelectorAll('input,select').forEach(el=>el.value='');}modal.classList.add('open');}
+function saveSupplier(){const name=document.getElementById('sp-name').value.trim();if(!name){alert('Please enter a supplier name.');return;}const editId=document.getElementById('suppModal').dataset.editId;const supplier={id:editId||Date.now().toString(),name,category:document.getElementById('sp-category').value,contact:document.getElementById('sp-contact').value.trim(),location:document.getElementById('sp-location').value.trim(),products:document.getElementById('sp-products').value.trim(),rating:parseInt(document.getElementById('sp-rating').value)||0,notes:document.getElementById('sp-notes').value.trim()};let suppliers=DS('suppliers');if(editId){const idx=suppliers.findIndex(x=>x.id===editId);if(idx>=0)suppliers[idx]=supplier;else suppliers.unshift(supplier);}else{suppliers.unshift(supplier);}save('suppliers',suppliers);document.getElementById('suppModal').classList.remove('open');renderSuppliers();}
+function deleteSupplier(id){if(!confirm('Delete this supplier?'))return;save('suppliers',DS('suppliers').filter(x=>x.id!==id));renderSuppliers();}
+function renderSuppliers(){const filter=document.getElementById('supFilter').value;const search=document.getElementById('supSearch').value.toLowerCase();let h=DS('suppliers');if(filter)h=h.filter(x=>x.category===filter);if(search)h=h.filter(x=>x.name.toLowerCase().includes(search)||(x.products||'').toLowerCase().includes(search)||(x.location||'').toLowerCase().includes(search));const grid=document.getElementById('supplierGrid');const empty=document.getElementById('supplierEmpty');if(!h.length){grid.innerHTML='';empty.style.display='block';return;}empty.style.display='none';const catEmoji={'Feed Dealer':'🌾','Agrovet':'💊','Equipment':'🔧','Seeds':'🌱','Chemicals':'🧪','Produce Buyer':'🛒','Transport':'🚛','Other':'📦'};grid.innerHTML=h.map(s=>`<div class="data-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-size:22px">${catEmoji[s.category]||'📦'}</div><div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-top:4px">${escHtml(s.name)}</div><div style="font-size:11px;color:var(--muted)">${s.category}</div></div>${s.rating?`<div style="font-size:14px">${'⭐'.repeat(Math.min(s.rating,5))}</div>`:''}</div>${s.contact?`<div style="font-size:12px;color:var(--muted);margin-bottom:5px">📱 <span style="color:var(--cream)">${escHtml(s.contact)}</span></div>`:''} ${s.location?`<div style="font-size:12px;color:var(--muted);margin-bottom:5px">📍 <span style="color:var(--cream)">${escHtml(s.location)}</span></div>`:''} ${s.products?`<div style="font-size:11px;color:rgba(245,240,232,0.7);margin-bottom:9px">${escHtml(s.products)}</div>`:''} ${s.notes?`<div style="font-size:11px;color:var(--muted);margin-bottom:9px">${escHtml(s.notes)}</div>`:''}<div style="display:flex;gap:5px">${s.contact?`<a href="tel:${s.contact}" style="flex:1;padding:6px;background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.2);border-radius:7px;color:#2ecc71;font-size:11px;text-align:center;text-decoration:none;font-family:'DM Sans',sans-serif">📞 Call</a>`:''}<button onclick="openModal('${s.id}')" style="padding:6px 9px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Edit</button><button onclick="deleteSupplier('${s.id}')" style="padding:6px 9px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:7px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button></div></div>`).join('');}
+renderSuppliers();
+
+initShared('suppliers');
+</script></body></html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Employee & Labour Tracker</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(142,68,173,0.1);border-color:rgba(142,68,173,0.25);color:#bb8fce">👷 Labour</div><h2>Employee & Labour <em>Tracker</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+  <button class="btn btn-purple btn-sm" onclick="openLabourModal()">+ Log Labour Entry</button>
+  <button class="btn btn-ghost btn-sm" onclick="openWorkerModal()">+ Add Worker</button>
+</div>
+<div class="stat-strip" id="labourStats">
+  <div class="scard" data-icon="👷"><div class="scard-label">Workers</div><div class="scard-value" id="ls-workers" style="color:var(--purple)">0</div><div class="scard-sub">Registered</div></div>
+  <div class="scard" data-icon="⏰"><div class="scard-label">Hours This Month</div><div class="scard-value" id="ls-hours" style="color:var(--blue)">0</div></div>
+  <div class="scard" data-icon="💰"><div class="scard-label">Wages This Month</div><div class="scard-value" id="ls-wages" style="color:#2ecc71">0</div></div>
+  <div class="scard" data-icon="📋"><div class="scard-label">Entries</div><div class="scard-value" id="ls-entries" style="color:var(--gold-light)">0</div></div>
+</div>
+<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Worker</th><th>Task</th><th>Hours</th><th>Rate/Hr</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody id="labourBody"></tbody></table></div>
+<div class="hist-empty" id="labourEmpty">No labour records yet.</div>
+<div class="modal-overlay" id="labourModal">
+  <div class="modal"><h3>Log Labour Entry</h3><p class="modal-sub">Record a work session for a farm employee.</p>
+    <div class="modal-fields">
+      <input type="date" id="lb-date">
+      <div class="sw"><select id="lb-worker"><option value="">Select Worker</option></select></div>
+      <input type="text" id="lb-task" placeholder="Task (e.g. Feeding, Cleaning, Harvesting)">
+      <div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><input type="number" id="lb-hours" placeholder="Hours worked" step="0.5"><input type="number" id="lb-rate" placeholder="Rate per hour" step="0.01"></div>
+      <div class="sw"><select id="lb-status"><option value="pending">⏳ Pending Payment</option><option value="paid">✅ Paid</option></select></div>
+      <input type="text" id="lb-notes" placeholder="Notes (optional)">
+    </div>
+    <input type="hidden" id="lb-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('labourModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveLabour()" style="background:linear-gradient(135deg,#6c3483,#9b59b6)">Save Entry</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="workerModal">
+  <div class="modal"><h3>Add Worker</h3><p class="modal-sub">Register a farm employee or casual labourer.</p>
+    <div class="modal-fields">
+      <input type="text" id="wk-name" placeholder="Full Name"><input type="text" id="wk-phone" placeholder="📱 Phone number">
+      <input type="text" id="wk-role" placeholder="Role (e.g. Farmhand, Driver, Milker)">
+      <input type="number" id="wk-rate" placeholder="Default hourly rate" step="0.01">
+      <input type="date" id="wk-start" placeholder="Start Date">
+    </div>
+    <input type="hidden" id="wk-edit-id">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('workerModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveWorker()">Save Worker</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+function openWorkerModal(id){const modal=document.getElementById('workerModal');modal.dataset.editId=id||'';if(id){const w=DS('workers').find(x=>x.id===id);if(w){document.getElementById('wk-name').value=w.name||'';document.getElementById('wk-phone').value=w.phone||'';document.getElementById('wk-role').value=w.role||'';document.getElementById('wk-rate').value=w.rate||'';document.getElementById('wk-start').value=w.start||'';}}else{modal.querySelectorAll('input').forEach(el=>el.value='');document.getElementById('wk-start').value=today();}modal.classList.add('open');}
+function saveWorker(){const name=document.getElementById('wk-name').value.trim();if(!name){alert('Please enter a name.');return;}const editId=document.getElementById('workerModal').dataset.editId;const worker={id:editId||Date.now().toString(),name,phone:document.getElementById('wk-phone').value.trim(),role:document.getElementById('wk-role').value.trim(),rate:parseFloat(document.getElementById('wk-rate').value)||0,start:document.getElementById('wk-start').value};let workers=DS('workers');if(editId){const idx=workers.findIndex(x=>x.id===editId);if(idx>=0)workers[idx]=worker;else workers.unshift(worker);}else{workers.unshift(worker);}save('workers',workers);document.getElementById('workerModal').classList.remove('open');updateWorkerSelect();renderLabour();}
+function updateWorkerSelect(){const sel=document.getElementById('lb-worker');if(!sel)return;const prev=sel.value;sel.innerHTML='<option value="">Select Worker</option>'+DS('workers').map(w=>`<option value="${escHtml(w.name)}">${escHtml(w.name)} (${escHtml(w.role||'Farmhand')})</option>`).join('');if(prev)sel.value=prev;}
+function openLabourModal(id){const modal=document.getElementById('labourModal');modal.dataset.editId=id||'';if(id){const e=DS('labour').find(x=>x.id===id);if(e){document.getElementById('lb-date').value=e.date;document.getElementById('lb-worker').value=e.worker;document.getElementById('lb-task').value=e.task;document.getElementById('lb-hours').value=e.hours;document.getElementById('lb-rate').value=e.rate;document.getElementById('lb-status').value=e.status;document.getElementById('lb-notes').value=e.notes||'';}}else{document.getElementById('lb-date').value=today();document.getElementById('lb-status').value='pending';['lb-task','lb-hours','lb-rate','lb-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}modal.classList.add('open');}
+function saveLabour(){const worker=document.getElementById('lb-worker').value;const task=document.getElementById('lb-task').value.trim();const hours=parseFloat(document.getElementById('lb-hours').value)||0;const rate=parseFloat(document.getElementById('lb-rate').value)||0;if(!worker||!task){alert('Please select worker and enter task.');return;}const editId=document.getElementById('labourModal').dataset.editId;const entry={id:editId||Date.now().toString(),date:document.getElementById('lb-date').value,worker,task,hours,rate,total:hours*rate,status:document.getElementById('lb-status').value,notes:document.getElementById('lb-notes').value.trim()};let labour=DS('labour');if(editId){const idx=labour.findIndex(x=>x.id===editId);if(idx>=0)labour[idx]=entry;else labour.unshift(entry);}else{labour.unshift(entry);}save('labour',labour);document.getElementById('labourModal').classList.remove('open');renderLabour();}
+function deleteLabour(id){save('labour',DS('labour').filter(x=>x.id!==id));renderLabour();}
+function markPaid(id){const labour=DS('labour');const e=labour.find(x=>x.id===id);if(e)e.status='paid';save('labour',labour);renderLabour();}
+function renderLabour(){
+  const h=DS('labour');const workers=DS('workers');const mH=h.filter(e=>(e.date||'').startsWith(thisMonth()));
+  document.getElementById('ls-workers').textContent=workers.length;
+  document.getElementById('ls-hours').textContent=fmt(mH.reduce((s,e)=>s+(e.hours||0),0));
+  document.getElementById('ls-wages').textContent=fmtI(mH.reduce((s,e)=>s+(e.total||0),0));
+  document.getElementById('ls-entries').textContent=h.length;
+  const body=document.getElementById('labourBody');const empty=document.getElementById('labourEmpty');
+  if(!h.length){body.innerHTML='';empty.style.display='block';return;}empty.style.display='none';
+  body.innerHTML=h.slice(0,40).map(e=>`<tr><td>${e.date}</td><td style="font-weight:500">${escHtml(e.worker)}</td><td>${escHtml(e.task)}</td><td>${e.hours}hrs</td><td>${fmtI(e.rate)}</td><td style="font-weight:600;color:var(--green)">${fmtI(e.total)}</td><td>${e.status==='paid'?'<span style="color:#2ecc71">✅ Paid</span>':`<button onclick="markPaid('${e.id}')" style="padding:2px 8px;background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.2);border-radius:5px;color:#2ecc71;cursor:pointer;font-size:10px;font-family:'DM Sans',sans-serif">Mark Paid</button>`}</td><td><div style="display:flex;gap:4px"><button onclick="openLabourModal('${e.id}')" style="padding:3px 8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;font-size:11px">Edit</button><button onclick="deleteLabour('${e.id}')" style="padding:3px 8px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:5px;color:#e74c3c;cursor:pointer;font-size:11px">✕</button></div></td></tr>`).join('');
+}
+updateWorkerSelect();renderLabour();
+
+initShared('labour');
+</script></body></html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Farm Loan Calculator</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(82,183,136,0.1);border-color:rgba(82,183,136,0.25);color:var(--green)">💳 Loan</div><h2>Farm Loan <em>Calculator</em></h2></div>
+
+<div class="fg">
+  <div class="form-card"><div class="card-head"><span class="card-icon">💳</span><h3>Loan Details</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label">Loan Amount</label><input type="number" id="ln-amount" placeholder="e.g. 50000" min="0"></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Annual Interest Rate (%)</label><input type="number" id="ln-rate" placeholder="e.g. 14" step="0.1"></div><div class="field-group"><label class="field-label">Term (months)</label><input type="number" id="ln-term" placeholder="e.g. 12" min="1"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="ln-currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div><div class="field-group"><label class="field-label">Loan Type</label><div class="sw"><select id="ln-type"><option value="reducing">Reducing Balance</option><option value="flat">Flat Rate</option></select></div></div></div>
+    <div class="field-group"><label class="field-label">Loan Purpose</label><input type="text" id="ln-purpose" placeholder="e.g. Buy 500 broiler chicks"></div>
+  </div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">🌾</span><h3>Farm Revenue Context</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label">Main Product</label><input type="text" id="ln-product" placeholder="e.g. Broiler chicken"></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Sale Price / Unit</label><input type="number" id="ln-price" placeholder="e.g. 650" step="0.01"></div><div class="field-group"><label class="field-label">Cost / Unit</label><input type="number" id="ln-cost" placeholder="e.g. 420" step="0.01"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Units / Batch</label><input type="number" id="ln-units" placeholder="e.g. 480"></div><div class="field-group"><label class="field-label">Batches / Year</label><input type="number" id="ln-batches" placeholder="e.g. 4"></div></div>
+  </div></div>
+</div>
+<button class="btn btn-green btn-full" id="loanBtn" onclick="runLoan()">💳 Calculate Repayment Plan</button>
+<div class="loading-state" id="loading"><div class="spinner"></div><strong>Calculating...</strong><p>Building your repayment plan</p></div>
+<div class="result-section" id="result"></div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+async function aiPrompt(prompt, loadId, resultId, btnId, showFn) {
+  document.getElementById(loadId).style.display='block';
+  if(resultId) document.getElementById(resultId).style.display='none';
+  if(btnId) document.getElementById(btnId).disabled=true;
+  try { const resp=await callAI(prompt); const r=parseAI(resp); if(!r) throw new Error('parse'); showFn(r); }
+  catch(e) { console.error(e); alert('Error. Please try again.'); }
+  finally { document.getElementById(loadId).style.display='none'; if(btnId) document.getElementById(btnId).disabled=false; }
+}
+
+function runLoan(){
+  const amount=parseFloat(document.getElementById('ln-amount').value)||0;const rate=parseFloat(document.getElementById('ln-rate').value)||0;const term=parseInt(document.getElementById('ln-term').value)||0;const currency=document.getElementById('ln-currency').value;const type=document.getElementById('ln-type').value;
+  if(!amount||!rate||!term){alert('Please enter loan amount, interest rate and term.');return;}
+  const mRate=rate/100/12;let monthly;
+  if(type==='reducing'){monthly=amount*(mRate*Math.pow(1+mRate,term))/(Math.pow(1+mRate,term)-1);}else{monthly=(amount+(amount*rate/100*term/12))/term;}
+  const total=monthly*term;const interest=total-amount;
+  const product=document.getElementById('ln-product').value.trim();const salePrice=parseFloat(document.getElementById('ln-price').value)||0;const costPerUnit=parseFloat(document.getElementById('ln-cost').value)||0;const unitsPerBatch=parseFloat(document.getElementById('ln-units').value)||0;const batchesPerYear=parseFloat(document.getElementById('ln-batches').value)||0;
+  aiPrompt(`You are AgriLogic financial advisor for East African farmers.
+${langNote()}
+Loan: ${currency} ${amount}, Rate: ${rate}% p.a., Term: ${term} months, Type: ${type}
+Monthly payment: ${currency} ${monthly.toFixed(0)}, Total: ${currency} ${total.toFixed(0)}, Interest: ${currency} ${interest.toFixed(0)}
+${product?`Farm product: ${product}, Sale: ${currency} ${salePrice}/unit, Cost: ${currency} ${costPerUnit}/unit, Units/batch: ${unitsPerBatch}, Batches/year: ${batchesPerYear}`:'No product data.'}
+Respond ONLY with JSON:
+{"feasibility":"Highly Feasible/Feasible/Risky/Not Advised","monthly_as_pct_of_income":0,"batches_needed_to_repay":0,"units_needed_to_repay":0,"repayment_schedule_sample":[{"month":1,"payment":0,"principal":0,"interest":0,"balance":0}],"advice":["a1","a2","a3"],"risks":["r1"],"alternatives":["alt1"],"summary":"str"}`,
+  'loading','result','loanBtn',r=>showLoan(r,{amount,rate,term,monthly,total,interest,currency,type,product,salePrice,costPerUnit,unitsPerBatch,batchesPerYear,annualProfit:(salePrice-costPerUnit)*unitsPerBatch*batchesPerYear}));
+}
+function showLoan(r,d){
+  const fc={'Highly Feasible':'var(--green)','Feasible':'#7dde9a','Risky':'var(--warn)','Not Advised':'#e74c3c'};
+  const el=document.getElementById('result');el.style.display='block';
+  el.innerHTML=`<div class="stat-strip"><div class="scard" data-icon="💳"><div class="scard-label">Monthly Payment</div><div class="scard-value" style="color:#5dade2;font-size:17px">${d.currency} ${fmtI(d.monthly)}</div></div><div class="scard" data-icon="📊"><div class="scard-label">Total Repayment</div><div class="scard-value" style="color:#e74c3c;font-size:17px">${d.currency} ${fmtI(d.total)}</div></div><div class="scard" data-icon="💸"><div class="scard-label">Total Interest</div><div class="scard-value" style="color:var(--warn);font-size:17px">${d.currency} ${fmtI(d.interest)}</div></div><div class="scard" data-icon="✅"><div class="scard-label">Feasibility</div><div class="scard-value" style="color:${fc[r.feasibility]||'var(--green)'};font-size:12px;padding-top:5px">${r.feasibility||'—'}</div></div></div><div class="rgrid">${d.product&&d.salePrice?`<div class="rblock gold"><h4>🌾 Farm Income Analysis</h4><ul><li>Profit/unit: <strong>${d.currency} ${fmt(d.salePrice-d.costPerUnit)}</strong></li><li>Annual farm income: <strong>${d.currency} ${fmtI(d.annualProfit)}</strong></li>${r.batches_needed_to_repay?`<li>Batches to repay: <strong>${r.batches_needed_to_repay}</strong></li>`:''}</ul></div>`:''}<div class="rblock"><h4>📅 Repayment Sample</h4><div style="overflow-x:auto"><table class="tbl" style="font-size:11px"><thead><tr><th>Mo.</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead><tbody>${(r.repayment_schedule_sample||[]).slice(0,6).map(row=>`<tr><td>${row.month}</td><td>${d.currency} ${fmtI(row.payment)}</td><td style="color:var(--green)">${d.currency} ${fmtI(row.principal)}</td><td style="color:#e74c3c">${d.currency} ${fmtI(row.interest)}</td><td>${d.currency} ${fmtI(row.balance)}</td></tr>`).join('')}</tbody></table></div></div><div class="rblock full"><h4>💡 Advice</h4><ul>${(r.advice||[]).map(a=>'<li>'+escHtml(a)+'</li>').join('')}</ul></div>${r.risks?.length?`<div class="rblock warn"><h4>⚠️ Risks</h4><ul>${r.risks.map(x=>'<li>'+escHtml(x)+'</li>').join('')}</ul></div>`:''}${r.alternatives?.length?`<div class="rblock good"><h4>🔄 Alternatives</h4><ul>${r.alternatives.map(x=>'<li>'+escHtml(x)+'</li>').join('')}</ul></div>`:''}<div class="rblock good full"><h4>📋 Summary</h4><p>${escHtml(r.summary||'')}</p></div></div>`;
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+initShared('loan');
+</script></body></html>

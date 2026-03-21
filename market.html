@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Farm Marketplace</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(212,160,23,0.1);border-color:rgba(212,160,23,0.25);color:var(--gold-light)">🏪 Market</div><h2>Farm <em>Marketplace</em></h2></div>
+
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+  <button class="btn btn-green btn-sm" onclick="openModal('sell')">📤 I'm Selling</button>
+  <button class="btn btn-blue btn-sm" onclick="openModal('buy')">📥 I'm Buying</button>
+  <div class="ftabs"><div class="ftab active" id="mf-all" onclick="filterMarket('all')">All</div><div class="ftab" id="mf-sell" onclick="filterMarket('sell')">Selling</div><div class="ftab" id="mf-buy" onclick="filterMarket('buy')">Buying</div></div>
+  <input type="text" id="marketSearch" placeholder="🔍 Search..." onkeyup="renderMarket()" style="flex:1;min-width:160px">
+</div>
+<div class="card-grid" id="marketGrid"></div>
+<div class="hist-empty" id="marketEmpty">No listings yet. Post the first one!</div>
+<div class="modal-overlay" id="marketModal">
+  <div class="modal"><h3 id="mkTitle">Post Listing</h3><p class="modal-sub" id="mkSub">Connect directly with buyers or sellers.</p>
+    <div class="modal-fields">
+      <input type="text" id="mk-title" placeholder="What? (e.g. 100 broilers ready for sale)">
+      <div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><div class="sw"><select id="mk-category"><option>Poultry</option><option>Livestock</option><option>Crops</option><option>Vegetables</option><option>Fruits</option><option>Fish</option><option>Feed</option><option>Equipment</option><option>Seeds</option><option>Other</option></select></div><input type="number" id="mk-price" placeholder="Price/unit" step="0.01"></div>
+      <div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><input type="number" id="mk-quantity" placeholder="Quantity"><input type="text" id="mk-unit" placeholder="Unit (kg, pcs, bags)"></div>
+      <input type="text" id="mk-location" placeholder="📍 Your location">
+      <input type="text" id="mk-contact" placeholder="📱 Phone / WhatsApp number">
+      <textarea id="mk-desc" rows="2" placeholder="Description, quality, delivery info..."></textarea>
+      <input type="date" id="mk-available">
+    </div>
+    <input type="hidden" id="mk-type">
+    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('marketModal').classList.remove('open')">Cancel</button><button class="modal-save" id="mkSaveBtn" onclick="saveMarket()">Post Listing</button></div>
+  </div>
+</div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+let mktFilter='all';
+function openModal(type){
+  document.getElementById('mk-type').value=type;
+  document.getElementById('mkTitle').textContent=type==='sell'?"📤 Post What I'm Selling":"📥 Post What I Need";
+  document.getElementById('mkSub').textContent=type==='sell'?'List your produce for buyers to find.':'Tell sellers what you're looking for.';
+  document.getElementById('mkSaveBtn').style.background=type==='sell'?'linear-gradient(135deg,#1a6b3a,#27ae60)':'linear-gradient(135deg,#1a4a6a,#2e86ab)';
+  document.getElementById('marketModal').querySelectorAll('input:not([type=hidden]),textarea').forEach(el=>el.value='');
+  document.getElementById('mk-available').value=today();
+  document.getElementById('marketModal').classList.add('open');
+}
+function saveMarket(){const title=document.getElementById('mk-title').value.trim();const contact=document.getElementById('mk-contact').value.trim();if(!title||!contact){alert('Please enter item details and contact info.');return;}const listing={id:Date.now().toString(),type:document.getElementById('mk-type').value,title,category:document.getElementById('mk-category').value,price:parseFloat(document.getElementById('mk-price').value)||0,quantity:parseFloat(document.getElementById('mk-quantity').value)||0,unit:document.getElementById('mk-unit').value.trim(),location:document.getElementById('mk-location').value.trim(),contact,description:document.getElementById('mk-desc').value.trim(),available:document.getElementById('mk-available').value,posted:new Date().toLocaleDateString(),timestamp:Date.now()};save('market',[listing,...DS('market')].slice(0,100));document.getElementById('marketModal').classList.remove('open');renderMarket();}
+function deleteMarket(id){if(!confirm('Remove listing?'))return;save('market',DS('market').filter(x=>x.id!==id));renderMarket();}
+function filterMarket(f){mktFilter=f;['all','sell','buy'].forEach(x=>document.getElementById('mf-'+x)?.classList.toggle('active',x===f));renderMarket();}
+function renderMarket(){
+  const search=document.getElementById('marketSearch').value.toLowerCase();let h=DS('market');
+  if(mktFilter!=='all')h=h.filter(x=>x.type===mktFilter);
+  if(search)h=h.filter(x=>x.title.toLowerCase().includes(search)||(x.location||'').toLowerCase().includes(search)||(x.category||'').toLowerCase().includes(search));
+  const grid=document.getElementById('marketGrid');const empty=document.getElementById('marketEmpty');
+  if(!h.length){grid.innerHTML='';empty.style.display='block';return;}empty.style.display='none';
+  const catEmoji={Poultry:'🐔',Livestock:'🐄',Crops:'🌽',Vegetables:'🥬',Fruits:'🍋',Fish:'🐟',Feed:'🌾',Equipment:'🔧',Seeds:'🌱',Other:'📦'};
+  grid.innerHTML=h.map(l=>`<div class="data-card" style="border-color:${l.type==='sell'?'rgba(39,174,96,0.15)':'rgba(41,128,185,0.15)'}"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><span style="padding:3px 9px;border-radius:9px;font-size:10px;font-weight:700;background:${l.type==='sell'?'rgba(39,174,96,0.12)':'rgba(41,128,185,0.12)'};color:${l.type==='sell'?'#2ecc71':'#5dade2'}">${l.type==='sell'?'📤 SELLING':'📥 BUYING'}</span><span style="font-size:20px">${catEmoji[l.category]||'📦'}</span></div><div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--cream);margin-bottom:5px">${escHtml(l.title)}</div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">${l.category}${l.quantity?' · '+l.quantity+' '+(l.unit||''):''}${l.location?' · 📍'+escHtml(l.location):''}</div>${l.price?`<div style="font-size:19px;font-weight:700;font-family:'Playfair Display',serif;color:var(--gold-light);margin-bottom:8px">${fmtI(l.price)} / ${l.unit||'unit'}</div>`:'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Price: Negotiable</div>'}${l.description?`<div style="font-size:11px;color:rgba(245,240,232,0.65);margin-bottom:9px;line-height:1.5">${escHtml(l.description)}</div>`:''}<div style="display:flex;align-items:center;justify-content:space-between;padding-top:9px;border-top:1px solid rgba(82,183,136,0.06)"><div><div style="font-size:12px;font-weight:600;color:var(--cream)">📱 ${escHtml(l.contact)}</div><div style="font-size:10px;color:var(--muted)">${l.available?'From: '+l.available:''} · Posted ${l.posted}</div></div><div style="display:flex;gap:5px"><button onclick="shareWhatsApp('🌿 AgriLogic Marketplace\n\n${l.title.replace(/'/g,'').slice(0,40)}\nPrice: ${l.price?l.price+' per '+(l.unit||'unit'):'Negotiable'}\n${l.location?'📍 '+l.location+'\n':''}📱 ${l.contact}\nPowered by AgriLogic')" style="padding:5px 10px;background:#25D366;border:none;border-radius:7px;color:white;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">📱</button><button onclick="deleteMarket('${l.id}')" style="padding:5px 10px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:7px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button></div></div></div>`).join('');
+}
+renderMarket();
+
+initShared('market');
+</script></body></html>

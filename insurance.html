@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Farm Insurance Calculator</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+<div class="main-content"><div class="page">
+<div class="page-header"><div class="page-badge" style="background:rgba(22,160,133,0.1);border-color:rgba(22,160,133,0.25);color:#76d7c4">🛡️ Insurance</div><h2>Farm Insurance <em>Calculator</em></h2></div>
+
+<div class="fg">
+  <div class="form-card"><div class="card-head"><span class="card-icon">🛡️</span><h3>Farm Assets</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label">Country / Region</label><input type="text" id="ins-location" placeholder="e.g. Kenya, Nakuru County"></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Livestock Count</label><input type="number" id="ins-livestock" placeholder="e.g. 500" min="0"></div><div class="field-group"><label class="field-label">Livestock Total Value</label><input type="number" id="ins-lval" placeholder="Total value" step="0.01"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Crop Area (acres)</label><input type="number" id="ins-area" placeholder="e.g. 5" step="0.1"></div><div class="field-group"><label class="field-label">Crop Expected Value</label><input type="number" id="ins-cval" placeholder="Harvest value" step="0.01"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Equipment Value</label><input type="number" id="ins-eval" placeholder="Tractors, pumps..." step="0.01"></div><div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="ins-currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div></div>
+    <div class="field-group"><label class="field-label">Main Risks (hold Ctrl/Cmd for multiple)</label><div class="sw"><select id="ins-risk" multiple style="height:80px"><option value="drought">Drought</option><option value="flood">Flooding</option><option value="disease">Disease Outbreak</option><option value="theft">Theft</option><option value="fire">Fire</option><option value="pests">Pest/Locust</option></select></div></div>
+  </div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">📋</span><h3>Coverage Preferences</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label">Coverage Type</label><div class="sw"><select id="ins-type"><option value="livestock">Livestock Only</option><option value="crop">Crop Only</option><option value="both">Livestock + Crop</option><option value="comprehensive">Comprehensive</option></select></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label">Annual Budget for Premium</label><input type="number" id="ins-budget" placeholder="e.g. 15000" step="0.01"></div><div class="field-group"><label class="field-label">Payment Frequency</label><div class="sw"><select id="ins-payment"><option>Annual lump sum</option><option>Monthly</option><option>Quarterly</option></select></div></div></div>
+    <div class="field-group"><label class="field-label">Farming Experience</label><div class="sw"><select id="ins-exp"><option>Beginner (0-2 years)</option><option>Intermediate (3-7 years)</option><option>Experienced (7+ years)</option></select></div></div>
+  </div></div>
+</div>
+<button class="btn btn-full" id="insBtn" onclick="runInsurance()" style="background:linear-gradient(135deg,var(--teal),#1abc9c);color:white;font-size:14px;font-weight:600;border:none;border-radius:10px;padding:14px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.22s">🛡️ Calculate My Insurance Needs</button>
+<div class="loading-state" id="loading"><div class="spinner" style="border-top-color:#76d7c4"></div><strong>Calculating...</strong><p>AI is assessing your coverage needs</p></div>
+<div class="result-section" id="result"></div>
+
+</div></div></div>
+<script src="../shared.js"></script><script>
+async function aiPrompt(prompt, loadId, resultId, btnId, showFn) {
+  document.getElementById(loadId).style.display='block';
+  if(resultId) document.getElementById(resultId).style.display='none';
+  if(btnId) document.getElementById(btnId).disabled=true;
+  try { const resp=await callAI(prompt); const r=parseAI(resp); if(!r) throw new Error('parse'); showFn(r); }
+  catch(e) { console.error(e); alert('Error. Please try again.'); }
+  finally { document.getElementById(loadId).style.display='none'; if(btnId) document.getElementById(btnId).disabled=false; }
+}
+
+function runInsurance(){
+  const location=document.getElementById('ins-location').value.trim();if(!location){alert('Please enter your location.');return;}
+  const lv=parseFloat(document.getElementById('ins-lval').value)||0;const cv=parseFloat(document.getElementById('ins-cval').value)||0;const ev=parseFloat(document.getElementById('ins-eval').value)||0;const currency=document.getElementById('ins-currency').value;
+  const risks=[...document.getElementById('ins-risk').selectedOptions].map(o=>o.value).join(', ');
+  aiPrompt(`You are AgriLogic insurance advisor for East African farmers.
+${langNote()}
+Location: ${location}, Livestock value: ${currency} ${lv}, Crop value: ${currency} ${cv}, Equipment value: ${currency} ${ev}, Coverage type: ${document.getElementById('ins-type').value}, Budget: ${currency} ${document.getElementById('ins-budget').value||'not specified'}, Risks: ${risks||'general'}, Experience: ${document.getElementById('ins-exp').value}
+Respond ONLY with JSON:
+{"total_asset_value":0,"recommended_coverage":0,"estimated_premium_annual":0,"estimated_premium_monthly":0,"coverage_percentage":0,"risk_level":"Low/Medium/High","insurance_types":[{"name":"str","description":"str","estimated_cost_annual":0,"covers":["item1"]}],"local_providers":["provider1"],"tips":["t1","t2"],"warnings":["w1"],"summary":"str"}`,
+  'loading','result','insBtn',r=>showInsurance(r,currency,lv,cv,ev));
+}
+function showInsurance(r,currency,lv,cv,ev){
+  const rColor={Low:'var(--green)',Medium:'var(--warn)',High:'#e74c3c'};
+  const el=document.getElementById('result');el.style.display='block';
+  el.innerHTML=`<div class="stat-strip"><div class="scard" data-icon="💰"><div class="scard-label">Total Asset Value</div><div class="scard-value" style="color:var(--gold-light);font-size:17px">${currency} ${fmtI(r.total_asset_value||lv+cv+ev)}</div></div><div class="scard" data-icon="🛡️"><div class="scard-label">Recommended Coverage</div><div class="scard-value" style="color:var(--green);font-size:17px">${currency} ${fmtI(r.recommended_coverage)}</div></div><div class="scard" data-icon="💳"><div class="scard-label">Est. Annual Premium</div><div class="scard-value" style="color:#5dade2;font-size:17px">${currency} ${fmtI(r.estimated_premium_annual)}</div></div><div class="scard" data-icon="📊"><div class="scard-label">Risk Level</div><div class="scard-value" style="color:${rColor[r.risk_level]||'var(--green)'};font-size:14px;padding-top:5px">${r.risk_level||'—'}</div></div></div><div class="rgrid"><div class="rblock full"><h4>🛡️ Recommended Insurance Plans</h4>${(r.insurance_types||[]).map(t=>`<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(82,183,136,0.08);border-radius:10px;padding:12px 14px;margin-bottom:8px"><div style="font-weight:600;font-size:13px;color:var(--cream);margin-bottom:4px">${escHtml(t.name)} — <span style="color:var(--gold-light)">${currency} ${fmtI(t.estimated_cost_annual)}/yr</span></div><div style="font-size:12px;color:var(--muted);margin-bottom:6px">${escHtml(t.description)}</div><div style="font-size:11px;color:rgba(245,240,232,0.7)">Covers: ${(t.covers||[]).map(escHtml).join(', ')}</div></div>`).join('')}</div>${r.local_providers?.length?`<div class="rblock"><h4>🏢 Local Providers</h4><ul>${r.local_providers.map(p=>'<li>'+escHtml(p)+'</li>').join('')}</ul></div>`:''}<div class="rblock"><h4>💡 Tips</h4><ul>${(r.tips||[]).map(t=>'<li>'+escHtml(t)+'</li>').join('')}</ul></div>${r.warnings?.length?`<div class="rblock warn full"><h4>⚠️ Warnings</h4><ul>${r.warnings.map(w=>'<li>'+escHtml(w)+'</li>').join('')}</ul></div>`:''}<div class="rblock good full"><h4>📋 Summary</h4><p>${escHtml(r.summary||'')}</p></div></div>`;
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+initShared('insurance');
+</script></body></html>

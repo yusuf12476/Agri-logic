@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriLogic — Disease & Pest <em>Diagnosis</em></title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+</head>
+<body>
+<div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  <div class="main-content"><div class="page">
+    <div class="page-header">
+      <div class="page-badge" style="background:rgba(192,57,43,0.1);border-color:rgba(192,57,43,0.25);color:#e74c3c">🔬 Diagnosis</div>
+      <h2 id="page-title">Disease & Pest <em>Diagnosis</em></h2>
+    </div>
+
+      <div class="form-card">
+        <div style="display:flex;border-bottom:1px solid var(--border)">
+          <button class="ftab active" id="dtab-photo" onclick="switchTab('photo')" style="flex:1;border-radius:0;border:none;padding:12px">📸 Photo</button>
+          <button class="ftab" id="dtab-text" onclick="switchTab('text')" style="flex:1;border-radius:0;border:none;border-left:1px solid var(--border);padding:12px">✍️ Describe</button>
+        </div>
+        <div class="card-body">
+          <div id="tab-photo">
+            <div id="dropzone" ondragover="ev.preventDefault();this.style.borderColor='var(--green)'" ondragleave="this.style.borderColor=''" ondrop="onDrop(event)" style="border:2px dashed rgba(82,183,136,0.22);border-radius:13px;padding:36px 20px;text-align:center;cursor:pointer;position:relative;margin-bottom:13px;transition:all 0.3s">
+              <input type="file" accept="image/*" id="fileInput" onchange="loadFile(this.files[0])" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+              <div style="font-size:36px;margin-bottom:9px">🖼️</div>
+              <div style="font-size:14px;font-weight:600;margin-bottom:3px">Drop photo here</div>
+              <div style="font-size:12px;color:var(--muted)">or browse · JPG, PNG, WEBP</div>
+            </div>
+            <div id="previewWrap" style="display:none;position:relative;border-radius:13px;overflow:hidden;margin-bottom:13px;max-height:200px">
+              <img id="previewImg" src="" style="width:100%;height:200px;object-fit:cover">
+              <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(14,26,18,0.7),transparent);display:flex;align-items:flex-end;padding:12px;justify-content:space-between">
+                <span style="font-size:11px;color:rgba(255,255,255,0.8)" id="previewName"></span>
+                <button onclick="clearImg()" style="background:rgba(255,255,255,0.15);border:none;color:white;padding:4px 9px;border-radius:5px;font-size:11px;cursor:pointer">✕ Remove</button>
+              </div>
+            </div>
+          </div>
+          <div id="tab-text" style="display:none">
+            <div class="field-group"><label class="field-label">Describe symptoms</label><textarea id="symptomText" rows="4" placeholder="e.g. My chickens have swollen eyes, greenish droppings, not eating since 2 days..."></textarea></div>
+          </div>
+          <div class="g2" style="margin-top:13px">
+            <div class="field-group"><label class="field-label">Category</label><div class="sw"><select id="category"><option value="">Select category</option><option>🐔 Poultry</option><option>🐄 Cattle</option><option>🐐 Goats</option><option>🌾 Crops</option><option>🥬 Vegetables</option><option>🍋 Fruits</option><option>🐟 Fish</option></select></div></div>
+            <div class="field-group"><label class="field-label">Urgency</label><div class="sw"><select id="urgency"><option value="normal">Normal check</option><option value="urgent">⚠️ Urgent</option><option value="outbreak">🚨 Outbreak</option></select></div></div>
+          </div>
+          <button class="btn btn-green btn-full" style="margin-top:13px" id="diagnoseBtn" onclick="runDiagnosis()">🔬 Diagnose Now</button>
+        </div>
+      </div>
+      <div class="loading-state" id="loading"><div class="spinner"></div><strong>Analysing...</strong><p>AI is examining your submission</p></div>
+      <div class="result-section" id="result">
+        <div class="rblock" id="mainBlock">
+          <h4 id="resultLabel">DIAGNOSIS RESULT</h4>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px" id="diseaseName"></div>
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden"><div id="sevFill" style="height:100%;border-radius:3px;transition:width 1s ease;width:0%"></div></div>
+            <span id="sevLabel" style="font-size:11px;font-weight:600"></span>
+          </div>
+          <p style="font-size:12px;color:var(--muted)" id="diagSummary"></p>
+        </div>
+        <div class="rgrid" id="resultGrid"></div>
+        <div style="margin-top:12px">
+          <button class="btn btn-wa btn-sm" onclick="shareResultWhatsApp()">📱 Share Result on WhatsApp</button>
+        </div>
+      </div>
+      <div class="hist-section"><div class="hist-title">📂 Recent Diagnoses</div><div id="histList"><div class="hist-empty">No diagnoses yet.</div></div></div>
+
+  </div></div>
+</div>
+<script src="../shared.js"></script>
+<script>
+
+let diagFile=null, diagTab='photo';
+function switchTab(tab){
+  diagTab=tab;
+  document.getElementById('tab-photo').style.display=tab==='photo'?'block':'none';
+  document.getElementById('tab-text').style.display=tab==='text'?'block':'none';
+  document.getElementById('dtab-photo').classList.toggle('active',tab==='photo');
+  document.getElementById('dtab-text').classList.toggle('active',tab==='text');
+}
+function onDrop(e){e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type.startsWith('image/'))loadFile(f);}
+function loadFile(file){if(!file)return;diagFile=file;const r=new FileReader();r.onload=e=>{document.getElementById('previewImg').src=e.target.result;document.getElementById('previewName').textContent=file.name;document.getElementById('previewWrap').style.display='block';document.getElementById('dropzone').style.display='none';};r.readAsDataURL(file);}
+function clearImg(){diagFile=null;document.getElementById('previewWrap').style.display='none';document.getElementById('dropzone').style.display='block';document.getElementById('fileInput').value='';}
+async function runDiagnosis(){
+  const txt=document.getElementById('symptomText').value.trim();
+  if(diagTab==='photo'&&!diagFile){alert('Upload a photo first.');return;}
+  if(diagTab==='text'&&!txt){alert('Describe the symptoms first.');return;}
+  document.getElementById('loading').style.display='block';
+  document.getElementById('result').style.display='none';
+  document.getElementById('diagnoseBtn').disabled=true;
+  try{
+    const content=[];let thumb=null;
+    if(diagTab==='photo'&&diagFile){const b64=await fileToB64(diagFile);thumb=b64;content.push({type:'image',source:{type:'base64',media_type:diagFile.type,data:b64.split(',')[1]}});}
+    const p=getProfile();const ctx=p.location?`Farmer location: ${p.location}. `:'';
+    content.push({type:'text',text:`You are AgriLogic expert AI vet and agronomist for East African farmers.
+${langNote()}
+${ctx}Category: ${document.getElementById('category').value||'general'}. Urgency: ${document.getElementById('urgency').value}.
+${diagTab==='text'?`Symptoms: "${txt}"`:'Analyse the image carefully.'}
+Respond ONLY with JSON:
+{"disease":"name","confidence":"High/Medium/Low","severity":"low/medium/high","summary":"2-3 sentences","symptoms":["s1","s2","s3"],"causes":"brief","treatment":["t1","t2","t3","t4"],"prevention":["p1","p2","p3"],"vet_needed":true/false,"vet_note":"if needed"}`});
+    const resp=await callAI(content,true);const r=parseAI(resp);if(!r)throw new Error('parse');
+    showResult(r,thumb);
+  }catch(e){console.error(e);alert('Error. Please try again.');}
+  finally{document.getElementById('loading').style.display='none';document.getElementById('diagnoseBtn').disabled=false;}
+}
+let lastResult=null;
+function showResult(r,thumb){
+  lastResult=r;
+  const sev={low:'var(--green)',medium:'var(--warn)',high:'#e74c3c'};
+  const pct={low:'30%',medium:'65%',high:'90%'}[r.severity]||'50%';
+  document.getElementById('diseaseName').textContent=r.disease||'—';
+  const fill=document.getElementById('sevFill');fill.style.background=sev[r.severity]||'var(--green)';
+  document.getElementById('sevLabel').textContent=`${(r.severity||'').toUpperCase()} · ${r.confidence} confidence`;
+  document.getElementById('sevLabel').style.color=sev[r.severity]||'var(--green)';
+  document.getElementById('diagSummary').textContent=r.summary||'';
+  document.getElementById('result').style.display='block';
+  document.getElementById('resultGrid').innerHTML=`
+    <div class="rblock"><h4>🔍 Symptoms</h4><ul>${(r.symptoms||[]).map(s=>'<li>'+escHtml(s)+'</li>').join('')}</ul></div>
+    <div class="rblock"><h4>⚗️ Causes</h4><p>${escHtml(r.causes||'—')}</p></div>
+    <div class="rblock full"><h4>💊 Treatment</h4><ul>${(r.treatment||[]).map(t=>'<li>'+escHtml(t)+'</li>').join('')}</ul></div>
+    <div class="rblock"><h4>🛡️ Prevention</h4><ul>${(r.prevention||[]).map(p=>'<li>'+escHtml(p)+'</li>').join('')}</ul></div>
+    ${r.vet_needed?`<div class="rblock danger full"><h4>🏥 Vet Needed</h4><p>${escHtml(r.vet_note||'')}</p></div>`:''}`;
+  setTimeout(()=>{fill.style.width=pct;},100);
+  save('diag',[{id:Date.now(),disease:r.disease,severity:r.severity,category:document.getElementById('category').value||'general',date:new Date().toLocaleDateString(),thumb,result:r},...DS('diag')].slice(0,20));
+  renderHist();document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+function shareResultWhatsApp(){
+  if(!lastResult)return;
+  const text=`🔬 AgriLogic Diagnosis Result
+
+Animal/Crop: ${document.getElementById('category').value||'General'}
+Diagnosis: ${lastResult.disease}
+Severity: ${lastResult.severity?.toUpperCase()}
+
+Treatment:
+${(lastResult.treatment||[]).map((t,i)=>i+1+'. '+t).join('
+')}
+
+Powered by AgriLogic`;
+  shareWhatsApp(text);
+}
+function renderHist(){
+  const el=document.getElementById('histList');const h=DS('diag');
+  if(!h.length){el.innerHTML='<div class="hist-empty">No diagnoses yet.</div>';return;}
+  el.innerHTML='<div class="hist-list">'+h.slice(0,5).map(e=>`<div class="hist-item" onclick="showResult(e.result,e.thumb)"><div class="hist-icon">${e.thumb?`<img src="${e.thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:9px">`:'🔬'}</div><div class="hist-info"><div class="hist-name">${escHtml(e.disease)}</div><div class="hist-meta">${e.category} · ${e.date}</div></div><span style="font-size:11px;font-weight:600;color:${e.severity==='high'?'#e74c3c':e.severity==='medium'?'var(--warn)':'var(--green)'}">${(e.severity||'').toUpperCase()}</span></div>`).join('')+'</div>';
+  // Fix onclick with real data
+  const items=el.querySelectorAll('.hist-item');
+  h.slice(0,5).forEach((entry,i)=>{if(items[i])items[i].onclick=()=>showResult(entry.result,entry.thumb);});
+}
+renderHist();
+
+initShared('diagnosis');
+</script>
+</body>
+</html>
