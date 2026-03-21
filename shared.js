@@ -297,3 +297,62 @@ function initShared(activePage) {
 function shareWhatsApp(text) {
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 }
+
+// ── iOS INSTALL HELPER ────────────────────────────────
+// iOS doesn't fire beforeinstallprompt - show manual instructions instead
+function checkIOSInstall() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches 
+    || window.navigator.standalone;
+  
+  if (isIOS && !isInStandaloneMode) {
+    const btn = document.getElementById('installBtn');
+    if (btn) {
+      btn.classList.add('show');
+      btn.onclick = showIOSInstallTip;
+    }
+  }
+}
+
+function showIOSInstallTip() {
+  // Create a nice tip modal for iOS users
+  let tip = document.getElementById('iosTip');
+  if (tip) { tip.classList.add('open'); return; }
+  
+  tip = document.createElement('div');
+  tip.id = 'iosTip';
+  tip.className = 'modal-overlay open';
+  tip.innerHTML = `
+    <div class="modal" style="text-align:center">
+      <div style="font-size:36px;margin-bottom:12px">📲</div>
+      <h3 style="margin-bottom:8px">Install AgriLogic</h3>
+      <p class="modal-sub" style="margin-bottom:18px">
+        To install on your iPhone or iPad:
+      </p>
+      <div style="background:rgba(82,183,136,0.07);border:1px solid rgba(82,183,136,0.15);border-radius:12px;padding:16px;margin-bottom:16px;text-align:left">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:13px">
+          <span style="font-size:22px">1️⃣</span>
+          <span>Tap the <strong style="color:var(--green)">Share</strong> button <strong>⬆️</strong> at the bottom of Safari</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:13px">
+          <span style="font-size:22px">2️⃣</span>
+          <span>Scroll down and tap <strong style="color:var(--green)">"Add to Home Screen"</strong></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px">
+          <span style="font-size:22px">3️⃣</span>
+          <span>Tap <strong style="color:var(--green)">"Add"</strong> — AgriLogic appears on your home screen!</span>
+        </div>
+      </div>
+      <div class="modal-actions" style="justify-content:center">
+        <button class="modal-save" onclick="document.getElementById('iosTip').classList.remove('open')" style="min-width:120px">Got it ✓</button>
+      </div>
+    </div>`;
+  document.body.appendChild(tip);
+}
+
+// Run iOS check after init
+const _origInitShared = initShared;
+// Call iOS check on load
+window.addEventListener('load', () => {
+  setTimeout(checkIOSInstall, 500);
+});
