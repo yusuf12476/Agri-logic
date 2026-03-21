@@ -774,8 +774,7 @@ Diagnosis: ${lastResult.disease}
 Severity: ${lastResult.severity?.toUpperCase()}
 
 Treatment:
-${(lastResult.treatment||[]).map((t,i)=>i+1+'. '+t).join('
-')}
+${(lastResult.treatment||[]).map((t,i)=>i+1+'. '+t).join(', ')}
 
 Powered by AgriLogic`;
   shareWhatsApp(text);

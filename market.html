@@ -672,8 +672,8 @@ function shareWhatsApp(text) {
 let mktFilter='all';
 function openModal(type){
   document.getElementById('mk-type').value=type;
-  document.getElementById('mkTitle').textContent=type==='sell'?"📤 Post What I'm Selling":"📥 Post What I Need";
-  document.getElementById('mkSub').textContent=type==='sell'?'List your produce for buyers to find.':'Tell sellers what you're looking for.';
+  document.getElementById('mkTitle').textContent=type==='sell'?"Post What I'm Selling":"Post What I Need";
+  document.getElementById('mkSub').textContent=type==='sell'?'List your produce for buyers to find.':"Tell sellers what you're looking for.";
   document.getElementById('mkSaveBtn').style.background=type==='sell'?'linear-gradient(135deg,#1a6b3a,#27ae60)':'linear-gradient(135deg,#1a4a6a,#2e86ab)';
   document.getElementById('marketModal').querySelectorAll('input:not([type=hidden]),textarea').forEach(el=>el.value='');
   document.getElementById('mk-available').value=today();

@@ -693,9 +693,7 @@ Generate a clear, practical report with sections: Executive Summary, Financial P
   }catch(e){console.error(e);alert('Error generating report.');}
   finally{document.getElementById('loading').style.display='none';document.getElementById('rptBtn').disabled=false;}
 }
-function shareReport(){if(!lastReport){alert('Generate a report first.');return;}shareWhatsApp('🌿 AgriLogic Farm Report
-
-'+lastReport);}
+function shareReport(){if(!lastReport){alert('Generate a report first.');return;}shareWhatsApp('AgriLogic Farm Report: ' + lastReport.slice(0, 300));}
 function copyReport(){if(!lastReport){alert('Generate a report first.');return;}navigator.clipboard.writeText(lastReport).then(()=>alert('Report copied to clipboard!'));}
 
 initShared('reports');
