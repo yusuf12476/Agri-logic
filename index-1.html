@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AgriLogic">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e1a12">
+<title>AgriLogic — Complete Farm Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.dash-hero{margin-bottom:22px;}
+.dash-hero h1{font-family:'Playfair Display',serif;font-size:clamp(20px,3vw,30px);font-weight:900;line-height:1.15;margin-bottom:5px;}
+.dash-hero h1 em{font-style:normal;color:var(--green);}
+.dash-hero p{font-size:13px;color:var(--muted);}
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.dash-stat{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:13px;padding:15px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;text-decoration:none;display:block;}
+.dash-stat:hover{transform:translateY(-2px);border-color:rgba(82,183,136,0.2);}
+.dash-stat::after{content:attr(data-icon);position:absolute;right:11px;top:9px;font-size:22px;opacity:0.18;}
+.dash-stat-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;}
+.dash-stat-value{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--green);}
+.dash-stat-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:20px;}
+.mod-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:13px;padding:16px 14px;cursor:pointer;transition:all 0.22s;text-decoration:none;display:block;position:relative;overflow:hidden;}
+.mod-card:hover{transform:translateY(-2px);border-color:rgba(82,183,136,0.22);box-shadow:0 8px 24px rgba(0,0,0,0.25);}
+.mod-emoji{font-size:26px;margin-bottom:9px;display:block;}
+.mod-num{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+.mod-name{font-size:12px;font-weight:600;color:var(--cream);margin-bottom:3px;}
+.mod-desc{font-size:10px;color:var(--muted);line-height:1.4;}
+.mod-arrow{position:absolute;bottom:12px;right:12px;font-size:14px;color:var(--muted);transition:all 0.2s;}
+.mod-card:hover .mod-arrow{color:var(--green);transform:translateX(2px);}
+.dash-recent{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.recent-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.recent-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.recent-head-title{font-size:12px;font-weight:600;color:var(--cream);}
+.recent-see-all{font-size:11px;color:var(--green);text-decoration:none;}
+.recent-item{padding:10px 16px;border-bottom:1px solid rgba(82,183,136,0.04);display:flex;align-items:center;gap:9px;cursor:pointer;transition:background 0.2s;text-decoration:none;}
+.recent-item:last-child{border-bottom:none;}
+.recent-item:hover{background:rgba(82,183,136,0.04);}
+.recent-ic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:rgba(82,183,136,0.08);}
+.recent-name{font-size:12px;font-weight:500;color:var(--cream);}
+.recent-meta{font-size:10px;color:var(--muted);margin-top:1px;}
+@media(max-width:900px){.dash-stats{grid-template-columns:1fr 1fr;}.dash-recent{grid-template-columns:1fr;}}
+@media(max-width:580px){.dash-stats{grid-template-columns:1fr 1fr;}.modules-grid{grid-template-columns:1fr 1fr;}}
+</style>
+<script>if("serviceWorker"in navigator){navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.update());});caches.keys().then(keys=>keys.filter(k=>k!=="agrilogic-v2").forEach(k=>caches.delete(k)));}</script>
+</head>
+<body>
+<div class="offline-banner" id="offlineBanner">📡 You are offline. AI features require internet.</div>
+<div class="topbar" id="topbar"></div>
+<div class="app-body">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  <div class="main-content">
+    <div class="page">
+      <div class="dash-hero">
+        <h1 id="dashGreeting">Good morning, <em>Farmer</em> 🌿</h1>
+        <p>Your complete AI-powered farm management platform — 26 tools in one place.</p>
+      </div>
+      <div class="dash-stats" id="dashStats">
+        <a class="dash-stat" href="animals.html" data-icon="🐄"><div class="dash-stat-label">Animals</div><div class="dash-stat-value" id="dsv-animals">0</div><div class="dash-stat-sub">Registered</div></a>
+        <a class="dash-stat" href="inventory.html" data-icon="📦"><div class="dash-stat-label">Inventory Items</div><div class="dash-stat-value" id="dsv-inv">0</div><div class="dash-stat-sub">In stock</div></a>
+        <a class="dash-stat" href="tasks.html" data-icon="📋"><div class="dash-stat-label">Tasks Pending</div><div class="dash-stat-value" id="dsv-tasks">0</div><div class="dash-stat-sub">Due soon</div></a>
+        <a class="dash-stat" href="books.html" data-icon="💰"><div class="dash-stat-label">This Month</div><div class="dash-stat-value" id="dsv-revenue">—</div><div class="dash-stat-sub">Farm income</div></a>
+      </div>
+      <div id="dashAlerts"></div>
+      <div class="modules-grid" id="modulesGrid"></div>
+      <div class="dash-recent">
+        <div class="recent-card">
+          <div class="recent-head">
+            <div class="recent-head-title">🔬 Recent Diagnoses</div>
+            <a class="recent-see-all" href="diagnosis.html">See all →</a>
+          </div>
+          <div id="recentDiag"><div class="recent-item" style="cursor:default"><div class="recent-name" style="color:var(--muted)">No diagnoses yet</div></div></div>
+        </div>
+        <div class="recent-card">
+          <div class="recent-head">
+            <div class="recent-head-title">📋 Upcoming Tasks</div>
+            <a class="recent-see-all" href="tasks.html">See all →</a>
+          </div>
+          <div id="recentTasks"><div class="recent-item" style="cursor:default"><div class="recent-name" style="color:var(--muted)">No tasks yet</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="shared.js"></script>
+<script>
+const MODULES = [
+  ['🔬','Disease Diagnosis','diagnosis.html','Photo or symptoms → AI diagnosis'],
+  ['🧪','Soil Analyser','soil.html','Soil test → fertilizer plan'],
+  ['📅','Planting Calendar','calendar.html','12-month AI planting calendar'],
+  ['🌤️','Weather Advisor','weather.html','Seasonal farming advice'],
+  ['🐄','Animal Registry','animals.html','Track every animal + health records'],
+  ['🥛','Milk Tracker','milk.html','Daily milk yield per cow'],
+  ['🥚','Egg Tracker','eggs.html','Daily egg counts & laying rates'],
+  ['🐣','Breeding Tracker','breeding.html','Pregnancies & birth records'],
+  ['⚖️','Weight Tracker','weight.html','Growth curves per batch'],
+  ['🧮','Feed Calculator','feed.html','Optimised feed formulas'],
+  ['💰','Profit Tracker','profit.html','Per-batch profit & loss'],
+  ['📒','Farm Bookkeeping','books.html','Full income & expense journal'],
+  ['💳','Loan Calculator','loan.html','Repayment plans'],
+  ['🛡️','Insurance Calc','insurance.html','Coverage needs & premiums'],
+  ['🏛️','Subsidy Finder','subsidy.html','Government grants & programmes'],
+  ['📊','Farm Reports','reports.html','AI-generated farm reports'],
+  ['📦','Inventory','inventory.html','Stock with low-stock alerts'],
+  ['📋','Task Manager','tasks.html','Tasks with priorities & reminders'],
+  ['👷','Labour Tracker','labour.html','Employee hours & payroll'],
+  ['🗺️','Land Manager','land.html','Register each field or plot'],
+  ['💧','Water Tracker','water.html','Irrigation logs & advice'],
+  ['🏪','Marketplace','market.html','Sell produce & find supplies'],
+  ['🏥','Vet Directory','vets.html','Vet contacts & visit history'],
+  ['🏬','Suppliers','suppliers.html','Feed & medicine suppliers'],
+  ['🤖','AI Farm Advisor','chat.html','Chat 24/7 with your AI expert'],
+];
+
+function buildModules() {
+  document.getElementById('modulesGrid').innerHTML = MODULES.map(([emoji, name, href, desc], i) =>
+    `<a class="mod-card" href="${href}"><span class="mod-emoji">${emoji}</span><div class="mod-num">Module ${i+1}</div><div class="mod-name">${name}</div><div class="mod-desc">${desc}</div><span class="mod-arrow">→</span></a>`
+  ).join('');
+}
+
+function refreshDashboard() {
+  const animals = DS('animals');
+  const inv = DS('inventory');
+  const tasks = DS('tasks').filter(t => !t.done);
+  const books = DS('books');
+  const monthIncome = books.filter(b => b.type==='income' && (b.date||'').startsWith(thisMonth())).reduce((s,b) => s+(b.amount||0), 0);
+  document.getElementById('dsv-animals').textContent = animals.length;
+  document.getElementById('dsv-inv').textContent = inv.length;
+  document.getElementById('dsv-tasks').textContent = tasks.length;
+  document.getElementById('dsv-revenue').textContent = monthIncome > 0 ? fmtI(monthIncome) : '—';
+
+  const alerts = [];
+  const overdue = DS('tasks').filter(t => !t.done && t.due && t.due < today());
+  if (overdue.length) alerts.push(`<div class="alert alert-danger">🚨 <strong>${overdue.length} overdue task${overdue.length>1?'s':''}</strong> — ${overdue.map(t=>t.title).join(', ')}</div>`);
+  const lowStock = inv.filter(x => x.alert > 0 && x.qty <= x.alert);
+  if (lowStock.length) alerts.push(`<div class="alert alert-warn">⚠️ <strong>Low stock:</strong> ${lowStock.map(x=>x.name).join(', ')}</div>`);
+  const vaccDue = animals.filter(a => { if(!a.next_vac) return false; return Math.ceil((new Date(a.next_vac)-new Date())/86400000) <= 7; });
+  if (vaccDue.length) alerts.push(`<div class="alert alert-warn">💉 <strong>Vaccination due:</strong> ${vaccDue.map(a=>a.id).join(', ')}</div>`);
+  document.getElementById('dashAlerts').innerHTML = alerts.join('');
+
+  const diag = DS('diag');
+  document.getElementById('recentDiag').innerHTML = diag.length
+    ? diag.slice(0,3).map(e => `<a class="recent-item" href="diagnosis.html"><div class="recent-ic">🔬</div><div><div class="recent-name">${e.disease}</div><div class="recent-meta">${e.category||''} · ${e.date}</div></div></a>`).join('')
+    : '<div class="recent-item" style="cursor:default"><div class="recent-name" style="color:var(--muted)">No diagnoses yet</div></div>';
+
+  const catIcons = {health:'💉',feed:'🌾',crop:'🌱',equipment:'🔧',market:'🏪',finance:'💰',other:'📋'};
+  const upcoming = DS('tasks').filter(t=>!t.done).sort((a,b)=>(a.due||'9')<(b.due||'9')?-1:1).slice(0,3);
+  document.getElementById('recentTasks').innerHTML = upcoming.length
+    ? upcoming.map(t => `<a class="recent-item" href="tasks.html"><div class="recent-ic">${catIcons[t.category]||'📋'}</div><div><div class="recent-name">${t.title}</div><div class="recent-meta" style="color:${t.due&&t.due<today()?'#e74c3c':'var(--muted)'}">${t.due||'No date'} · ${t.priority||'—'}</div></div></a>`).join('')
+    : '<div class="recent-item" style="cursor:default"><div class="recent-name" style="color:var(--muted)">No tasks yet</div></div>';
+}
+
+function init() {
+  initShared('dashboard');
+  const h = new Date().getHours();
+  const greet = h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const profile = getProfile();
+  document.getElementById('dashGreeting').innerHTML = `${greet}, <em>${profile.name||'Farmer'}</em> 🌿`;
+  buildModules();
+  refreshDashboard();
+}
+init();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js")
+      .then(r => console.log("SW registered:", r.scope))
+      .catch(e => console.log("SW error:", e));
+  });
+}
+</script>
+</body>
+</html>
