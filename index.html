@@ -48,7 +48,7 @@
 @media(max-width:900px){.dash-stats{grid-template-columns:1fr 1fr;}.dash-recent{grid-template-columns:1fr;}}
 @media(max-width:580px){.dash-stats{grid-template-columns:1fr 1fr;}.modules-grid{grid-template-columns:1fr 1fr;}}
 </style>
-<script>if("serviceWorker"in navigator){navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.update());});caches.keys().then(keys=>keys.filter(k=>k!=="agrilogic-v2").forEach(k=>caches.delete(k)));}</script>
+
 </head>
 <body>
 <div class="offline-banner" id="offlineBanner">📡 You are offline. AI features require internet.</div>
@@ -168,14 +168,7 @@ function init() {
 }
 init();
 </script>
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js")
-      .then(r => console.log("SW registered:", r.scope))
-      .catch(e => console.log("SW error:", e));
-  });
-}
-</script>
+
+<script>if("serviceWorker"in navigator&&location.protocol!=="file:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 </body>
 </html>

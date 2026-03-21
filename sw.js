@@ -1,9 +1,6 @@
-// AgriLogic Service Worker v1.0
-// Enables: PWA install prompt, offline fallback, asset caching
+// AgriLogic Service Worker v2 — cache busted
+const CACHE_NAME = 'agrilogic-v2';
 
-const CACHE_NAME = 'agrilogic-v1';
-
-// All files to cache for offline use
 const ASSETS = [
   './index.html',
   './shared.css',
@@ -31,6 +28,7 @@ const ASSETS = [
   './soil.html',
   './subsidy.html',
   './suppliers.html',
+  './sw.js',
   './tasks.html',
   './vets.html',
   './water.html',
@@ -38,59 +36,38 @@ const ASSETS = [
   './weight.html',
 ];
 
-// Install — cache all app files
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS);
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
 });
 
-// Activate — clear old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      )
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
-// Fetch — serve from cache, fall back to network
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-
-  // Always go to network for AI API calls (Anthropic)
-  if (url.hostname === 'api.anthropic.com') {
-    return; // let it go to network normally
-  }
-
-  // For Google Fonts — network first, cache fallback
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
+  if (url.hostname === 'api.anthropic.com') return;
+  if (url.hostname.includes('fonts')) {
+    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
     return;
   }
-
-  // For app files — cache first, network fallback
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // Cache successful responses
         if (response && response.status === 200 && response.type === 'basic') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
         }
         return response;
       }).catch(() => {
-        // Offline fallback — return index.html for navigation requests
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
+        if (event.request.mode === 'navigate') return caches.match('./index.html');
       });
     })
   );
