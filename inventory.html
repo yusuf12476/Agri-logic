@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Inventory & Stock Tracker</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Inventory & Stock Tracker</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="shared.css"></head><body>
 <div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
 <div class="topbar" id="topbar"></div>
 <div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
@@ -30,7 +30,7 @@
 </div>
 
 </div></div></div>
-<script src="../shared.js"></script><script>
+<script src="shared.js"></script><script>
 function openModal(id){
   const modal=document.getElementById('invModal');
   document.getElementById('invModalTitle').textContent=id?'Edit Item':'Add Inventory Item';

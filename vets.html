@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Veterinary Directory</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Veterinary Directory</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="shared.css"></head><body>
 <div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
 <div class="topbar" id="topbar"></div>
 <div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
@@ -46,7 +46,7 @@
 </div>
 
 </div></div></div>
-<script src="../shared.js"></script><script>
+<script src="shared.js"></script><script>
 function openVetModal(id){const modal=document.getElementById('vetModal');document.getElementById('vetModalTitle').textContent=id?'Edit Vet':'Add Vet Contact';modal.dataset.editId=id||'';if(id){const v=DS('vets').find(x=>x.id===id);if(v){['vt-name','vt-phone','vt-specialty','vt-location','vt-hours','vt-notes'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=v[k.replace('vt-','')]||'';});}}else{modal.querySelectorAll('input').forEach(el=>el.value='');}modal.classList.add('open');}
 function saveVet(){const name=document.getElementById('vt-name').value.trim();if(!name){alert('Please enter a name.');return;}const editId=document.getElementById('vetModal').dataset.editId;const vet={id:editId||Date.now().toString(),name,phone:document.getElementById('vt-phone').value.trim(),specialty:document.getElementById('vt-specialty').value.trim(),location:document.getElementById('vt-location').value.trim(),hours:document.getElementById('vt-hours').value.trim(),notes:document.getElementById('vt-notes').value.trim()};let vets=DS('vets');if(editId){const idx=vets.findIndex(x=>x.id===editId);if(idx>=0)vets[idx]=vet;else vets.unshift(vet);}else{vets.unshift(vet);}save('vets',vets);document.getElementById('vetModal').classList.remove('open');renderVets();updateVetSelect();}
 function deleteVet(id){if(!confirm('Delete this vet?'))return;save('vets',DS('vets').filter(x=>x.id!==id));renderVets();}

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Employee & Labour Tracker</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Employee & Labour Tracker</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="shared.css"></head><body>
 <div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
 <div class="topbar" id="topbar"></div>
 <div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
@@ -45,7 +45,7 @@
 </div>
 
 </div></div></div>
-<script src="../shared.js"></script><script>
+<script src="shared.js"></script><script>
 function openWorkerModal(id){const modal=document.getElementById('workerModal');modal.dataset.editId=id||'';if(id){const w=DS('workers').find(x=>x.id===id);if(w){document.getElementById('wk-name').value=w.name||'';document.getElementById('wk-phone').value=w.phone||'';document.getElementById('wk-role').value=w.role||'';document.getElementById('wk-rate').value=w.rate||'';document.getElementById('wk-start').value=w.start||'';}}else{modal.querySelectorAll('input').forEach(el=>el.value='');document.getElementById('wk-start').value=today();}modal.classList.add('open');}
 function saveWorker(){const name=document.getElementById('wk-name').value.trim();if(!name){alert('Please enter a name.');return;}const editId=document.getElementById('workerModal').dataset.editId;const worker={id:editId||Date.now().toString(),name,phone:document.getElementById('wk-phone').value.trim(),role:document.getElementById('wk-role').value.trim(),rate:parseFloat(document.getElementById('wk-rate').value)||0,start:document.getElementById('wk-start').value};let workers=DS('workers');if(editId){const idx=workers.findIndex(x=>x.id===editId);if(idx>=0)workers[idx]=worker;else workers.unshift(worker);}else{workers.unshift(worker);}save('workers',workers);document.getElementById('workerModal').classList.remove('open');updateWorkerSelect();renderLabour();}
 function updateWorkerSelect(){const sel=document.getElementById('lb-worker');if(!sel)return;const prev=sel.value;sel.innerHTML='<option value="">Select Worker</option>'+DS('workers').map(w=>`<option value="${escHtml(w.name)}">${escHtml(w.name)} (${escHtml(w.role||'Farmhand')})</option>`).join('');if(prev)sel.value=prev;}

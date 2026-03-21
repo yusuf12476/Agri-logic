@@ -56,10 +56,10 @@
         <p>Your complete AI-powered farm management platform — 26 tools in one place.</p>
       </div>
       <div class="dash-stats" id="dashStats">
-        <a class="dash-stat" href="modules/animals.html" data-icon="🐄"><div class="dash-stat-label">Animals</div><div class="dash-stat-value" id="dsv-animals">0</div><div class="dash-stat-sub">Registered</div></a>
-        <a class="dash-stat" href="modules/inventory.html" data-icon="📦"><div class="dash-stat-label">Inventory Items</div><div class="dash-stat-value" id="dsv-inv">0</div><div class="dash-stat-sub">In stock</div></a>
-        <a class="dash-stat" href="modules/tasks.html" data-icon="📋"><div class="dash-stat-label">Tasks Pending</div><div class="dash-stat-value" id="dsv-tasks">0</div><div class="dash-stat-sub">Due soon</div></a>
-        <a class="dash-stat" href="modules/books.html" data-icon="💰"><div class="dash-stat-label">This Month</div><div class="dash-stat-value" id="dsv-revenue">—</div><div class="dash-stat-sub">Farm income</div></a>
+        <a class="dash-stat" href="animals.html" data-icon="🐄"><div class="dash-stat-label">Animals</div><div class="dash-stat-value" id="dsv-animals">0</div><div class="dash-stat-sub">Registered</div></a>
+        <a class="dash-stat" href="inventory.html" data-icon="📦"><div class="dash-stat-label">Inventory Items</div><div class="dash-stat-value" id="dsv-inv">0</div><div class="dash-stat-sub">In stock</div></a>
+        <a class="dash-stat" href="tasks.html" data-icon="📋"><div class="dash-stat-label">Tasks Pending</div><div class="dash-stat-value" id="dsv-tasks">0</div><div class="dash-stat-sub">Due soon</div></a>
+        <a class="dash-stat" href="books.html" data-icon="💰"><div class="dash-stat-label">This Month</div><div class="dash-stat-value" id="dsv-revenue">—</div><div class="dash-stat-sub">Farm income</div></a>
       </div>
       <div id="dashAlerts"></div>
       <div class="modules-grid" id="modulesGrid"></div>
@@ -67,14 +67,14 @@
         <div class="recent-card">
           <div class="recent-head">
             <div class="recent-head-title">🔬 Recent Diagnoses</div>
-            <a class="recent-see-all" href="modules/diagnosis.html">See all →</a>
+            <a class="recent-see-all" href="diagnosis.html">See all →</a>
           </div>
           <div id="recentDiag"><div class="recent-item" style="cursor:default"><div class="recent-name" style="color:var(--muted)">No diagnoses yet</div></div></div>
         </div>
         <div class="recent-card">
           <div class="recent-head">
             <div class="recent-head-title">📋 Upcoming Tasks</div>
-            <a class="recent-see-all" href="modules/tasks.html">See all →</a>
+            <a class="recent-see-all" href="tasks.html">See all →</a>
           </div>
           <div id="recentTasks"><div class="recent-item" style="cursor:default"><div class="recent-name" style="color:var(--muted)">No tasks yet</div></div></div>
         </div>
@@ -140,13 +140,13 @@ function refreshDashboard() {
 
   const diag = DS('diag');
   document.getElementById('recentDiag').innerHTML = diag.length
-    ? diag.slice(0,3).map(e => `<a class="recent-item" href="modules/diagnosis.html"><div class="recent-ic">🔬</div><div><div class="recent-name">${e.disease}</div><div class="recent-meta">${e.category||''} · ${e.date}</div></div></a>`).join('')
+    ? diag.slice(0,3).map(e => `<a class="recent-item" href="diagnosis.html"><div class="recent-ic">🔬</div><div><div class="recent-name">${e.disease}</div><div class="recent-meta">${e.category||''} · ${e.date}</div></div></a>`).join('')
     : '<div class="recent-item" style="cursor:default"><div class="recent-name" style="color:var(--muted)">No diagnoses yet</div></div>';
 
   const catIcons = {health:'💉',feed:'🌾',crop:'🌱',equipment:'🔧',market:'🏪',finance:'💰',other:'📋'};
   const upcoming = DS('tasks').filter(t=>!t.done).sort((a,b)=>(a.due||'9')<(b.due||'9')?-1:1).slice(0,3);
   document.getElementById('recentTasks').innerHTML = upcoming.length
-    ? upcoming.map(t => `<a class="recent-item" href="modules/tasks.html"><div class="recent-ic">${catIcons[t.category]||'📋'}</div><div><div class="recent-name">${t.title}</div><div class="recent-meta" style="color:${t.due&&t.due<today()?'#e74c3c':'var(--muted)'}">${t.due||'No date'} · ${t.priority||'—'}</div></div></a>`).join('')
+    ? upcoming.map(t => `<a class="recent-item" href="tasks.html"><div class="recent-ic">${catIcons[t.category]||'📋'}</div><div><div class="recent-name">${t.title}</div><div class="recent-meta" style="color:${t.due&&t.due<today()?'#e74c3c':'var(--muted)'}">${t.due||'No date'} · ${t.priority||'—'}</div></div></a>`).join('')
     : '<div class="recent-item" style="cursor:default"><div class="recent-name" style="color:var(--muted)">No tasks yet</div></div>';
 }
 

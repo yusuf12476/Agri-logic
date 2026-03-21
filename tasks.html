@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Farm Task Manager</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Farm Task Manager</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="shared.css"></head><body>
 <div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
 <div class="topbar" id="topbar"></div>
 <div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
@@ -29,7 +29,7 @@
 </div>
 
 </div></div></div>
-<script src="../shared.js"></script><script>
+<script src="shared.js"></script><script>
 let taskFilter='all';
 function openModal(id){const modal=document.getElementById('taskModal');modal.dataset.editId=id||'';if(id){const t=DS('tasks').find(x=>x.id===id);if(t){document.getElementById('tk-title').value=t.title;document.getElementById('tk-cat').value=t.category;document.getElementById('tk-due').value=t.due||'';document.getElementById('tk-priority').value=t.priority||'medium';document.getElementById('tk-animal').value=t.animal||'';document.getElementById('tk-notes').value=t.notes||'';document.getElementById('tk-repeat').checked=t.repeat||false;}}else{modal.querySelectorAll('input:not([type=checkbox]),textarea').forEach(el=>el.value='');document.getElementById('tk-repeat').checked=false;document.getElementById('tk-due').value=today();document.getElementById('tk-priority').value='medium';}modal.classList.add('open');}
 function saveTask(){const title=document.getElementById('tk-title').value.trim();if(!title){alert('Please enter a task title.');return;}const editId=document.getElementById('taskModal').dataset.editId;const task={id:editId||Date.now().toString(),title,category:document.getElementById('tk-cat').value,due:document.getElementById('tk-due').value,priority:document.getElementById('tk-priority').value,animal:document.getElementById('tk-animal').value.trim(),notes:document.getElementById('tk-notes').value.trim(),repeat:document.getElementById('tk-repeat').checked,done:editId?(DS('tasks').find(x=>x.id===editId)||{}).done||false:false,created:new Date().toLocaleDateString()};let tasks=DS('tasks');if(editId){const idx=tasks.findIndex(x=>x.id===editId);if(idx>=0)tasks[idx]=task;else tasks.unshift(task);}else{tasks.unshift(task);}save('tasks',tasks);document.getElementById('taskModal').classList.remove('open');renderTasks();}

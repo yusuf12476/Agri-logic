@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Milk Production Tracker</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Milk Production Tracker</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="shared.css"></head><body>
 <div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
 <div class="topbar" id="topbar"></div>
 <div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
@@ -20,7 +20,7 @@
 <div class="hist-empty" id="milkEmpty">No milk records yet.</div></div>
 
 </div></div></div>
-<script src="../shared.js"></script><script>
+<script src="shared.js"></script><script>
 function logMilk(){const animal=document.getElementById('m-animal').value.trim();const date=document.getElementById('m-date').value;const am=parseFloat(document.getElementById('m-am').value)||0;const pm=parseFloat(document.getElementById('m-pm').value)||0;if(!animal||!date){alert('Please enter animal ID and date.');return;}const price=parseFloat(document.getElementById('m-price').value)||0;const entry={id:Date.now().toString(),animal,date,am,pm,total:am+pm,quality:document.getElementById('m-quality').value,price,revenue:(am+pm)*price,notes:document.getElementById('m-notes').value.trim()};save('milk',[entry,...DS('milk')].slice(0,500));['m-animal','m-am','m-pm','m-price','m-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderMilk();updateSummary();}
 function deleteMilk(id){save('milk',DS('milk').filter(x=>x.id!==id));renderMilk();updateSummary();}
 function renderMilk(){const h=DS('milk');const body=document.getElementById('milkBody');const empty=document.getElementById('milkEmpty');if(!h.length){body.innerHTML='';empty.style.display='block';return;}empty.style.display='none';body.innerHTML=h.slice(0,50).map(e=>`<tr><td>${e.date}</td><td style="font-weight:500">${escHtml(e.animal)}</td><td>${e.am}L</td><td>${e.pm}L</td><td style="font-weight:600;color:var(--green)">${fmt(e.total)}L</td><td>${e.quality}</td><td>${e.revenue>0?fmt(e.revenue):'—'}</td><td><button onclick="deleteMilk('${e.id}')" style="padding:3px 8px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:5px;color:#e74c3c;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('');}

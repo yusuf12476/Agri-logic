@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Supplier Directory</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../shared.css"></head><body>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Supplier Directory</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="shared.css"></head><body>
 <div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
 <div class="topbar" id="topbar"></div>
 <div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
@@ -29,7 +29,7 @@
 </div>
 
 </div></div></div>
-<script src="../shared.js"></script><script>
+<script src="shared.js"></script><script>
 function openModal(id){const modal=document.getElementById('suppModal');document.getElementById('suppTitle').textContent=id?'Edit Supplier':'Add Supplier';modal.dataset.editId=id||'';if(id){const s=DS('suppliers').find(x=>x.id===id);if(s){['sp-name','sp-category','sp-contact','sp-location','sp-products','sp-rating','sp-notes'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=s[k.replace('sp-','')]||'';});}}else{modal.querySelectorAll('input,select').forEach(el=>el.value='');}modal.classList.add('open');}
 function saveSupplier(){const name=document.getElementById('sp-name').value.trim();if(!name){alert('Please enter a supplier name.');return;}const editId=document.getElementById('suppModal').dataset.editId;const supplier={id:editId||Date.now().toString(),name,category:document.getElementById('sp-category').value,contact:document.getElementById('sp-contact').value.trim(),location:document.getElementById('sp-location').value.trim(),products:document.getElementById('sp-products').value.trim(),rating:parseInt(document.getElementById('sp-rating').value)||0,notes:document.getElementById('sp-notes').value.trim()};let suppliers=DS('suppliers');if(editId){const idx=suppliers.findIndex(x=>x.id===editId);if(idx>=0)suppliers[idx]=supplier;else suppliers.unshift(supplier);}else{suppliers.unshift(supplier);}save('suppliers',suppliers);document.getElementById('suppModal').classList.remove('open');renderSuppliers();}
 function deleteSupplier(id){if(!confirm('Delete this supplier?'))return;save('suppliers',DS('suppliers').filter(x=>x.id!==id));renderSuppliers();}
