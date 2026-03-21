@@ -1,10 +1,16 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="AgriLogic">
-<link rel="apple-touch-icon" href="icon-192.png"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AgriLogic — Land Parcel Manager</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><style>
+<meta name="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriLogic — Analytics & Charts</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
 /* ═══════════════════════════════════════════
    AGRILOGIC — SHARED STYLES v2.0
    ═══════════════════════════════════════════ */
@@ -234,34 +240,144 @@ select option{background:var(--deep);}
   .card-grid{grid-template-columns:1fr;}
 }
 
-</style></head><body>
+</style>
+</head>
+<body>
 <div class="offline-banner" id="offlineBanner">📡 Offline — AI features need internet.</div>
 <div class="topbar" id="topbar"></div>
-<div class="app-body"><div class="sidebar" id="sidebar"></div><div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
-<div class="main-content"><div class="page">
-<div class="page-header"><div class="page-badge" style="background:rgba(124,92,58,0.12);border-color:rgba(124,92,58,0.28);color:#d4956a">🗺️ Land</div><h2>Land Parcel <em>Manager</em></h2></div>
+<div class="app-body">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  <div class="main-content"><div class="page">
 
-<div style="display:flex;gap:10px;margin-bottom:16px"><button class="btn btn-green btn-sm" onclick="openModal()">+ Add Parcel</button></div>
-<div class="card-grid" id="landGrid"></div>
-<div class="hist-empty" id="landEmpty">No land parcels yet. Add your first field or plot.</div>
-<div class="modal-overlay" id="landModal">
-  <div class="modal"><h3 id="landModalTitle">Add Land Parcel</h3><p class="modal-sub">Register a field, plot or growing area.</p>
-    <div class="modal-fields">
-      <input type="text" id="ln-name" placeholder="Parcel name (e.g. North Field, Plot B)">
-      <div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><input type="number" id="ln-size" placeholder="Size" step="0.01"><div class="sw"><select id="ln-unit"><option>Acres</option><option>Hectares</option><option>Plots (40x80)</option><option>Square metres</option></select></div></div>
-      <div class="sw"><select id="ln-soil"><option value="loam">Loam</option><option value="clay">Clay</option><option value="sandy">Sandy</option><option value="volcanic">Volcanic/Red</option><option value="black-cotton">Black Cotton</option></select></div>
-      <input type="text" id="ln-current" placeholder="🌱 Current crop (if any)">
-      <input type="text" id="ln-prev" placeholder="🌾 Previous crop">
-      <div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><input type="date" id="ln-limed" placeholder="Last limed"><input type="date" id="ln-fertilized" placeholder="Last fertilized"></div>
-      <input type="text" id="ln-location" placeholder="📍 GPS / location description">
-      <input type="text" id="ln-notes" placeholder="Notes">
+    <div class="page-header">
+      <div class="page-badge" style="background:rgba(82,183,136,0.1);border-color:rgba(82,183,136,0.25);color:var(--green)">📈 Analytics</div>
+      <h2>Farm <em>Analytics & Charts</em></h2>
+      <p>Visual overview of your farm's performance — production trends, finances, and more.</p>
     </div>
-    <input type="hidden" id="ln-edit-id">
-    <div class="modal-actions"><button class="modal-cancel" onclick="document.getElementById('landModal').classList.remove('open')">Cancel</button><button class="modal-save" onclick="saveLand()">Save Parcel</button></div>
-  </div>
+
+    <!-- PERIOD FILTER -->
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;gap:4px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:9px;padding:3px" id="periodTabs">
+        <button class="ptab active" onclick="setPeriod(7)"  id="pt-7">7 Days</button>
+        <button class="ptab"        onclick="setPeriod(30)" id="pt-30">30 Days</button>
+        <button class="ptab"        onclick="setPeriod(90)" id="pt-90">3 Months</button>
+        <button class="ptab"        onclick="setPeriod(365)" id="pt-365">1 Year</button>
+      </div>
+      <button class="btn btn-wa btn-sm" onclick="shareAnalytics()">📱 Share Summary</button>
+    </div>
+
+    <!-- KPI SUMMARY STRIP -->
+    <div class="stat-strip" id="kpiStrip" style="grid-template-columns:repeat(4,1fr);margin-bottom:22px"></div>
+
+    <!-- ROW 1: Income vs Expenses + Profit Trend -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px" class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">💰 Income vs Expenses</div>
+        <div class="chart-sub" id="incExpSub">Last 30 days by category</div>
+        <div class="chart-wrap"><canvas id="incExpChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">📈 Profit Trend</div>
+        <div class="chart-sub" id="profitTrendSub">Net profit over time</div>
+        <div class="chart-wrap"><canvas id="profitTrendChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ROW 2: Milk Production + Egg Laying Rate -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px" class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">🥛 Milk Production Trend</div>
+        <div class="chart-sub" id="milkSub">Daily yield in litres</div>
+        <div class="chart-wrap"><canvas id="milkChart"></canvas></div>
+        <div id="milkNoData" class="no-data">No milk records yet.<br><a href="milk.html" style="color:var(--green)">Start logging →</a></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🥚 Egg Production Trend</div>
+        <div class="chart-sub" id="eggSub">Daily egg count</div>
+        <div class="chart-wrap"><canvas id="eggChart"></canvas></div>
+        <div id="eggNoData" class="no-data">No egg records yet.<br><a href="eggs.html" style="color:var(--green)">Start logging →</a></div>
+      </div>
+    </div>
+
+    <!-- ROW 3: Weight Gain + Animal Status -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px" class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">⚖️ Weight Gain Progress</div>
+        <div class="chart-sub" id="weightSub">Average kg per batch over time</div>
+        <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
+        <div id="weightNoData" class="no-data">No weight records yet.<br><a href="weight.html" style="color:var(--green)">Start logging →</a></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🐄 Animal Status Breakdown</div>
+        <div class="chart-sub">Current herd health overview</div>
+        <div class="chart-wrap" style="max-height:200px"><canvas id="animalStatusChart"></canvas></div>
+        <div id="animalNoData" class="no-data">No animals registered yet.<br><a href="animals.html" style="color:var(--green)">Add animals →</a></div>
+      </div>
+    </div>
+
+    <!-- ROW 4: Expense Breakdown + Monthly Revenue -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px" class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">🥧 Expense Breakdown</div>
+        <div class="chart-sub">Where your money goes</div>
+        <div class="chart-wrap" style="max-height:200px"><canvas id="expenseDonutChart"></canvas></div>
+        <div id="expenseNoData" class="no-data">No expenses recorded yet.<br><a href="books.html" style="color:var(--green)">Add expenses →</a></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">📊 Monthly Revenue</div>
+        <div class="chart-sub">Income per month</div>
+        <div class="chart-wrap"><canvas id="monthlyRevenueChart"></canvas></div>
+        <div id="revenueNoData" class="no-data">No income recorded yet.<br><a href="books.html" style="color:var(--green)">Add income →</a></div>
+      </div>
+    </div>
+
+    <!-- ROW 5: Task Completion + Inventory Levels -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px" class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">📋 Task Completion Rate</div>
+        <div class="chart-sub">Completed vs pending tasks by category</div>
+        <div class="chart-wrap"><canvas id="taskChart"></canvas></div>
+        <div id="taskNoData" class="no-data">No tasks yet.<br><a href="tasks.html" style="color:var(--green)">Add tasks →</a></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">📦 Inventory Stock Levels</div>
+        <div class="chart-sub">Current qty vs alert threshold</div>
+        <div class="chart-wrap"><canvas id="inventoryChart"></canvas></div>
+        <div id="invChartNoData" class="no-data">No inventory items yet.<br><a href="inventory.html" style="color:var(--green)">Add items →</a></div>
+      </div>
+    </div>
+
+    <!-- ROW 6: Water Usage + Labour Hours -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px" class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">💧 Water Usage Trend</div>
+        <div class="chart-sub">Litres used per day</div>
+        <div class="chart-wrap"><canvas id="waterChart"></canvas></div>
+        <div id="waterNoData" class="no-data">No water records yet.<br><a href="water.html" style="color:var(--green)">Start logging →</a></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">👷 Labour Hours per Month</div>
+        <div class="chart-sub">Total hours worked</div>
+        <div class="chart-wrap"><canvas id="labourChart"></canvas></div>
+        <div id="labourNoData" class="no-data">No labour records yet.<br><a href="labour.html" style="color:var(--green)">Start logging →</a></div>
+      </div>
+    </div>
+
+  </div></div>
 </div>
 
-</div></div></div>
+<style>
+.ptab{padding:5px 12px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:var(--muted);background:transparent;cursor:pointer;transition:all 0.2s;}
+.ptab.active{background:var(--green);color:var(--green-deep);font-weight:600;}
+.chart-card{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:15px;padding:18px;position:relative;}
+.chart-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--cream);margin-bottom:3px;}
+.chart-sub{font-size:11px;color:var(--muted);margin-bottom:14px;}
+.chart-wrap{position:relative;height:200px;}
+.no-data{display:none;text-align:center;padding:30px 20px;color:var(--muted);font-size:13px;line-height:1.8;}
+@media(max-width:700px){.chart-row{grid-template-columns:1fr !important;}}
+</style>
+
 <script>
 // ═══════════════════════════════════════════════════
 //  AGRILOGIC SHARED.JS v2.3
@@ -679,14 +795,550 @@ function initShared(activePage) {
 function shareWhatsApp(text) {
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 }
-</script><script>
-function openModal(id){const modal=document.getElementById('landModal');document.getElementById('landModalTitle').textContent=id?'Edit Parcel':'Add Land Parcel';modal.dataset.editId=id||'';if(id){const l=DS('land').find(x=>x.id===id);if(l){document.getElementById('ln-name').value=l.name||'';document.getElementById('ln-size').value=l.size||'';document.getElementById('ln-unit').value=l.unit||'Acres';document.getElementById('ln-soil').value=l.soil||'loam';document.getElementById('ln-current').value=l.current_crop||'';document.getElementById('ln-prev').value=l.prev_crop||'';document.getElementById('ln-limed').value=l.last_limed||'';document.getElementById('ln-fertilized').value=l.last_fertilized||'';document.getElementById('ln-location').value=l.location||'';document.getElementById('ln-notes').value=l.notes||'';}}else{modal.querySelectorAll('input,select').forEach(el=>el.value='');}modal.classList.add('open');}
-function saveLand(){const name=document.getElementById('ln-name').value.trim();if(!name){alert('Please enter a parcel name.');return;}const editId=document.getElementById('landModal').dataset.editId;const parcel={id:editId||Date.now().toString(),name,size:parseFloat(document.getElementById('ln-size').value)||0,unit:document.getElementById('ln-unit').value,soil:document.getElementById('ln-soil').value,current_crop:document.getElementById('ln-current').value.trim(),prev_crop:document.getElementById('ln-prev').value.trim(),last_limed:document.getElementById('ln-limed').value,last_fertilized:document.getElementById('ln-fertilized').value,location:document.getElementById('ln-location').value.trim(),notes:document.getElementById('ln-notes').value.trim()};let land=DS('land');if(editId){const idx=land.findIndex(x=>x.id===editId);if(idx>=0)land[idx]=parcel;else land.unshift(parcel);}else{land.unshift(parcel);}save('land',land);document.getElementById('landModal').classList.remove('open');renderLand();}
-function deleteLand(id){if(!confirm('Delete this parcel?'))return;save('land',DS('land').filter(x=>x.id!==id));renderLand();}
-function renderLand(){const h=DS('land');const grid=document.getElementById('landGrid');const empty=document.getElementById('landEmpty');if(!h.length){grid.innerHTML='';empty.style.display='block';return;}empty.style.display='none';const soilEmoji={loam:'🟫',clay:'🪨',sandy:'🟡',volcanic:'🔴','black-cotton':'⬛'};grid.innerHTML=h.map(p=>`<div class="data-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-size:26px">🗺️</div><div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-top:4px">${escHtml(p.name)}</div><div style="font-size:11px;color:var(--muted)">${p.size||'?'} ${p.unit||'acres'}</div></div>${p.current_crop?`<span style="padding:3px 9px;border-radius:10px;font-size:10px;font-weight:600;color:var(--green);background:rgba(82,183,136,0.1)">🌱 ${escHtml(p.current_crop)}</span>`:''}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;font-size:11px;color:var(--muted)">${p.soil?`<div>${soilEmoji[p.soil]||'🌍'} <span style="color:var(--cream)">${p.soil}</span></div>`:''}${p.prev_crop?`<div>⟳ <span style="color:var(--cream)">${escHtml(p.prev_crop)}</span></div>`:''}${p.last_fertilized?`<div>🧪 <span style="color:var(--cream)">Fert: ${p.last_fertilized}</span></div>`:''}${p.location?`<div>📍 <span style="color:var(--cream)">${escHtml(p.location)}</span></div>`:''}</div>${p.notes?`<div style="font-size:11px;color:var(--muted);margin-bottom:9px">${escHtml(p.notes)}</div>`:''}<div style="display:flex;gap:5px"><button onclick="openModal('${p.id}')" style="flex:1;padding:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Edit</button><button onclick="deleteLand('${p.id}')" style="padding:6px 9px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.18);border-radius:7px;color:#e74c3c;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✕</button></div></div>`).join('');}
-renderLand();
+</script>
+<script>
+Chart.defaults.color = 'rgba(245,240,232,0.6)';
+Chart.defaults.borderColor = 'rgba(82,183,136,0.08)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 11;
 
-initShared('land');
+const GREEN  = 'rgba(82,183,136,';
+const GOLD   = 'rgba(212,160,23,';
+const RED    = 'rgba(192,57,43,';
+const BLUE   = 'rgba(46,134,171,';
+const PURP   = 'rgba(142,68,173,';
+const TEAL   = 'rgba(22,160,133,';
+
+const PALETTE = [
+  '#52b788','#d4a017','#2e86ab','#8e44ad','#16a085',
+  '#e67e22','#c0392b','#27ae60','#2980b9','#f39c12'
+];
+
+let currentPeriod = 30;
+let charts = {};
+
+function setPeriod(days) {
+  currentPeriod = days;
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+  document.getElementById('pt-' + days)?.classList.add('active');
+  buildAll();
+}
+
+function dateRange(days) {
+  const end = new Date();
+  const start = new Date(Date.now() - days * 86400000);
+  const dates = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    dates.push(d.toISOString().split('T')[0]);
+  }
+  return dates;
+}
+
+function filterByPeriod(arr, dateKey) {
+  const cutoff = new Date(Date.now() - currentPeriod * 86400000).toISOString().split('T')[0];
+  return arr.filter(x => (x[dateKey] || '') >= cutoff);
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function makeChart(id, config) {
+  destroyChart(id);
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  charts[id] = new Chart(canvas.getContext('2d'), config);
+}
+
+// ── KPI STRIP ─────────────────────────────────────────
+function buildKPI() {
+  const books  = filterByPeriod(DS('books'), 'date');
+  const income  = books.filter(b => b.type === 'income').reduce((s,b) => s+(b.amount||0), 0);
+  const expense = books.filter(b => b.type === 'expense').reduce((s,b) => s+(b.amount||0), 0);
+  const milkTotal = filterByPeriod(DS('milk'), 'date').reduce((s,e) => s+(e.total||0), 0);
+  const eggsTotal = filterByPeriod(DS('eggs'), 'date').reduce((s,e) => s+(e.count||0), 0);
+
+  document.getElementById('kpiStrip').innerHTML = `
+    <div class="scard" data-icon="💵"><div class="scard-label">Income</div><div class="scard-value" style="color:#2ecc71;font-size:18px">${fmtI(income)}</div><div class="scard-sub">Last ${currentPeriod} days</div></div>
+    <div class="scard" data-icon="📊"><div class="scard-label">Expenses</div><div class="scard-value" style="color:#e74c3c;font-size:18px">${fmtI(expense)}</div><div class="scard-sub">Last ${currentPeriod} days</div></div>
+    <div class="scard" data-icon="🥛"><div class="scard-label">Milk Yield</div><div class="scard-value" style="color:#f0f0f0;font-size:18px">${fmt(milkTotal)}L</div><div class="scard-sub">Last ${currentPeriod} days</div></div>
+    <div class="scard" data-icon="🥚"><div class="scard-label">Eggs Collected</div><div class="scard-value" style="color:var(--gold-light);font-size:18px">${fmtI(eggsTotal)}</div><div class="scard-sub">Last ${currentPeriod} days</div></div>`;
+}
+
+// ── INCOME vs EXPENSES BAR ────────────────────────────
+function buildIncExp() {
+  const books = filterByPeriod(DS('books'), 'date');
+  if (!books.length) return;
+
+  // Group by week or month depending on period
+  const grouped = {};
+  books.forEach(b => {
+    let key;
+    if (currentPeriod <= 30) {
+      // group by day
+      key = b.date;
+    } else if (currentPeriod <= 90) {
+      // group by week
+      const d = new Date(b.date);
+      const week = Math.floor(d.getDate() / 7);
+      key = `${b.date.slice(0,7)}-W${week+1}`;
+    } else {
+      // group by month
+      key = b.date.slice(0,7);
+    }
+    if (!grouped[key]) grouped[key] = {income:0, expense:0};
+    if (b.type === 'income')  grouped[key].income  += (b.amount||0);
+    if (b.type === 'expense') grouped[key].expense += (b.amount||0);
+  });
+
+  const labels = Object.keys(grouped).sort();
+  const incomes  = labels.map(k => grouped[k].income);
+  const expenses = labels.map(k => grouped[k].expense);
+
+  makeChart('incExpChart', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'Income',   data:incomes,  backgroundColor:GREEN+'0.7)', borderColor:GREEN+'1)', borderWidth:1, borderRadius:4 },
+        { label:'Expenses', data:expenses, backgroundColor:RED  +'0.6)', borderColor:RED  +'1)', borderWidth:1, borderRadius:4 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:10, padding:12 } } },
+      scales:{
+        x:{ grid:{ color:'rgba(82,183,136,0.06)' }, ticks:{ maxTicksLimit:8 } },
+        y:{ grid:{ color:'rgba(82,183,136,0.06)' }, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// ── PROFIT TREND LINE ─────────────────────────────────
+function buildProfitTrend() {
+  const books = filterByPeriod(DS('books'), 'date');
+  if (!books.length) return;
+
+  const byDate = {};
+  books.forEach(b => {
+    if (!byDate[b.date]) byDate[b.date] = 0;
+    byDate[b.date] += b.type === 'income' ? (b.amount||0) : -(b.amount||0);
+  });
+
+  const dates = Object.keys(byDate).sort();
+  let running = 0;
+  const data = dates.map(d => { running += byDate[d]; return { x:d, y:running }; });
+
+  makeChart('profitTrendChart', {
+    type:'line',
+    data:{
+      datasets:[{
+        label:'Cumulative Profit',
+        data,
+        borderColor: GREEN+'1)',
+        backgroundColor: GREEN+'0.08)',
+        fill:true,
+        tension:0.4,
+        pointRadius:3,
+        pointBackgroundColor: GREEN+'1)'
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      parsing:{ xAxisKey:'x', yAxisKey:'y' },
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ type:'category', grid:{ color:'rgba(82,183,136,0.06)' }, ticks:{ maxTicksLimit:8 } },
+        y:{ grid:{ color:'rgba(82,183,136,0.06)' }, beginAtZero:false }
+      }
+    }
+  });
+}
+
+// ── MILK CHART ────────────────────────────────────────
+function buildMilk() {
+  const raw = filterByPeriod(DS('milk'), 'date');
+  const noData = document.getElementById('milkNoData');
+  if (!raw.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  // Group by date, sum all animals
+  const byDate = {};
+  raw.forEach(e => { byDate[e.date] = (byDate[e.date]||0) + (e.total||0); });
+  const dates = Object.keys(byDate).sort();
+
+  makeChart('milkChart', {
+    type:'line',
+    data:{
+      labels: dates,
+      datasets:[{
+        label:'Total Litres',
+        data: dates.map(d => byDate[d]),
+        borderColor:'rgba(240,240,240,0.9)',
+        backgroundColor:'rgba(255,255,255,0.05)',
+        fill:true, tension:0.4, pointRadius:3
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{ color:'rgba(82,183,136,0.06)' }, ticks:{ maxTicksLimit:10 } },
+        y:{ grid:{ color:'rgba(82,183,136,0.06)' }, beginAtZero:true, title:{ display:true, text:'Litres' } }
+      }
+    }
+  });
+}
+
+// ── EGG CHART ─────────────────────────────────────────
+function buildEggs() {
+  const raw = filterByPeriod(DS('eggs'), 'date');
+  const noData = document.getElementById('eggNoData');
+  if (!raw.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  const byDate = {};
+  raw.forEach(e => { byDate[e.date] = (byDate[e.date]||0) + (e.count||0); });
+  const dates = Object.keys(byDate).sort();
+
+  makeChart('eggChart', {
+    type:'bar',
+    data:{
+      labels:dates,
+      datasets:[{
+        label:'Eggs',
+        data: dates.map(d => byDate[d]),
+        backgroundColor: GOLD+'0.7)',
+        borderColor: GOLD+'1)',
+        borderWidth:1, borderRadius:4
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{ color:'rgba(82,183,136,0.06)' }, ticks:{ maxTicksLimit:10 } },
+        y:{ grid:{ color:'rgba(82,183,136,0.06)' }, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// ── WEIGHT CHART ──────────────────────────────────────
+function buildWeight() {
+  const raw = filterByPeriod(DS('weight'), 'date');
+  const noData = document.getElementById('weightNoData');
+  if (!raw.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  // Group by animal
+  const animals = [...new Set(raw.map(e => e.animal))].slice(0,5);
+  const datasets = animals.map((animal, i) => {
+    const entries = raw.filter(e => e.animal === animal).sort((a,b) => a.date > b.date ? 1 : -1);
+    return {
+      label: animal,
+      data: entries.map(e => ({ x:e.date, y:e.weight })),
+      borderColor: PALETTE[i % PALETTE.length],
+      backgroundColor: 'transparent',
+      tension:0.4, pointRadius:4
+    };
+  });
+
+  makeChart('weightChart', {
+    type:'line',
+    data:{ datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      parsing:{ xAxisKey:'x', yAxisKey:'y' },
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:10, padding:10 } } },
+      scales:{
+        x:{ type:'category', grid:{ color:'rgba(82,183,136,0.06)' }, ticks:{ maxTicksLimit:10 } },
+        y:{ grid:{ color:'rgba(82,183,136,0.06)' }, title:{ display:true, text:'kg' } }
+      }
+    }
+  });
+}
+
+// ── ANIMAL STATUS DOUGHNUT ────────────────────────────
+function buildAnimalStatus() {
+  const animals = DS('animals');
+  const noData = document.getElementById('animalNoData');
+  if (!animals.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  const statuses = {};
+  animals.forEach(a => { const s = a.status||'Active'; statuses[s] = (statuses[s]||0)+1; });
+  const labels = Object.keys(statuses);
+  const statusColors = { Active:GREEN+'0.8)', Sick:RED+'0.8)', Pregnant:GOLD+'0.8)', Sold:'rgba(74,112,96,0.8)', Deceased:'rgba(100,100,100,0.8)' };
+
+  makeChart('animalStatusChart', {
+    type:'doughnut',
+    data:{
+      labels,
+      datasets:[{
+        data: labels.map(l => statuses[l]),
+        backgroundColor: labels.map(l => statusColors[l]||TEAL+'0.8)'),
+        borderColor: labels.map(l => (statusColors[l]||TEAL+'1)').replace('0.8)','1)')),
+        borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'right', labels:{ boxWidth:12, padding:12 } }
+      },
+      cutout:'65%'
+    }
+  });
+}
+
+// ── EXPENSE DONUT ─────────────────────────────────────
+function buildExpenseDonut() {
+  const expenses = filterByPeriod(DS('books').filter(b => b.type==='expense'), 'date');
+  const noData = document.getElementById('expenseNoData');
+  if (!expenses.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  const cats = {};
+  expenses.forEach(e => { const c = e.category||'other'; cats[c] = (cats[c]||0)+(e.amount||0); });
+  const sorted = Object.entries(cats).sort((a,b) => b[1]-a[1]);
+  const labels = sorted.map(([k]) => k.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()));
+  const values = sorted.map(([,v]) => v);
+
+  makeChart('expenseDonutChart', {
+    type:'doughnut',
+    data:{
+      labels,
+      datasets:[{
+        data: values,
+        backgroundColor: PALETTE.slice(0, labels.length).map(c => c.replace('#','rgba(').replace(/(..)(..)(..)/, (_, r,g,b) => `${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)},0.8)`)),
+        borderColor:'rgba(14,26,18,0.5)',
+        borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'right', labels:{ boxWidth:10, padding:10, font:{ size:10 } } } },
+      cutout:'60%'
+    }
+  });
+}
+
+// ── MONTHLY REVENUE BAR ───────────────────────────────
+function buildMonthlyRevenue() {
+  const books = DS('books').filter(b => b.type==='income');
+  const noData = document.getElementById('revenueNoData');
+  if (!books.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  const byMonth = {};
+  books.forEach(b => {
+    const m = (b.date||'').slice(0,7);
+    if (m) byMonth[m] = (byMonth[m]||0) + (b.amount||0);
+  });
+  const months = Object.keys(byMonth).sort().slice(-12);
+
+  makeChart('monthlyRevenueChart', {
+    type:'bar',
+    data:{
+      labels: months.map(m => {
+        const [y,mo] = m.split('-');
+        return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(mo)-1] + ' ' + y.slice(2);
+      }),
+      datasets:[{
+        label:'Revenue',
+        data: months.map(m => byMonth[m]),
+        backgroundColor: GREEN+'0.7)',
+        borderColor: GREEN+'1)',
+        borderWidth:1, borderRadius:5
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{ color:'rgba(82,183,136,0.06)' } },
+        y:{ grid:{ color:'rgba(82,183,136,0.06)' }, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// ── TASK CHART ────────────────────────────────────────
+function buildTasks() {
+  const tasks = DS('tasks');
+  const noData = document.getElementById('taskNoData');
+  if (!tasks.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  const cats = {health:0,feed:0,crop:0,equipment:0,market:0,finance:0,other:0};
+  const done = {health:0,feed:0,crop:0,equipment:0,market:0,finance:0,other:0};
+  tasks.forEach(t => {
+    const c = t.category||'other';
+    cats[c] = (cats[c]||0)+1;
+    if (t.done) done[c] = (done[c]||0)+1;
+  });
+
+  const labels = Object.keys(cats).map(k => k.charAt(0).toUpperCase()+k.slice(1));
+  const catIcons = {Health:'💉',Feed:'🌾',Crop:'🌱',Equipment:'🔧',Market:'🏪',Finance:'💰',Other:'📋'};
+
+  makeChart('taskChart', {
+    type:'bar',
+    data:{
+      labels: labels.map(l => (catIcons[l]||'') + ' ' + l),
+      datasets:[
+        { label:'Done',    data:Object.values(done), backgroundColor:GREEN+'0.8)', borderRadius:3 },
+        { label:'Pending', data:Object.keys(cats).map(c=>cats[c]-(done[c]||0)), backgroundColor:'rgba(230,126,34,0.7)', borderRadius:3 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:10 } } },
+      scales:{
+        x:{ stacked:true, grid:{ color:'rgba(82,183,136,0.06)' } },
+        y:{ stacked:true, grid:{ color:'rgba(82,183,136,0.06)' }, beginAtZero:true, ticks:{ stepSize:1 } }
+      }
+    }
+  });
+}
+
+// ── INVENTORY CHART ───────────────────────────────────
+function buildInventory() {
+  const inv = DS('inventory');
+  const noData = document.getElementById('invChartNoData');
+  if (!inv.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  const top = inv.slice(0, 10);
+  const isLow = i => i.alert > 0 && i.qty <= i.alert;
+
+  makeChart('inventoryChart', {
+    type:'bar',
+    data:{
+      labels: top.map(i => i.name.length > 14 ? i.name.slice(0,14)+'…' : i.name),
+      datasets:[
+        { label:'In Stock',      data:top.map(i=>i.qty),   backgroundColor:top.map(i=>isLow(i)?RED+'0.7)':GREEN+'0.7)'), borderRadius:4 },
+        { label:'Alert Level',   data:top.map(i=>i.alert||0), backgroundColor:'rgba(230,126,34,0.3)', borderRadius:4 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:10 } } },
+      scales:{
+        x:{ grid:{ color:'rgba(82,183,136,0.06)' }, beginAtZero:true },
+        y:{ grid:{ color:'rgba(82,183,136,0.06)' }, ticks:{ font:{ size:10 } } }
+      }
+    }
+  });
+}
+
+// ── WATER CHART ───────────────────────────────────────
+function buildWater() {
+  const raw = filterByPeriod(DS('water'), 'date');
+  const noData = document.getElementById('waterNoData');
+  if (!raw.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  const byDate = {};
+  raw.forEach(e => { byDate[e.date] = (byDate[e.date]||0) + (e.litres||0); });
+  const dates = Object.keys(byDate).sort();
+
+  makeChart('waterChart', {
+    type:'line',
+    data:{
+      labels:dates,
+      datasets:[{
+        label:'Litres',
+        data:dates.map(d=>byDate[d]),
+        borderColor:BLUE+'1)',
+        backgroundColor:BLUE+'0.1)',
+        fill:true, tension:0.4, pointRadius:3
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{ color:'rgba(82,183,136,0.06)' }, ticks:{ maxTicksLimit:10 } },
+        y:{ grid:{ color:'rgba(82,183,136,0.06)' }, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// ── LABOUR CHART ──────────────────────────────────────
+function buildLabour() {
+  const raw = DS('labour');
+  const noData = document.getElementById('labourNoData');
+  if (!raw.length) { noData.style.display='block'; return; }
+  noData.style.display='none';
+
+  const byMonth = {};
+  raw.forEach(e => {
+    const m = (e.date||'').slice(0,7);
+    if (m) byMonth[m] = (byMonth[m]||0) + (e.hours||0);
+  });
+  const months = Object.keys(byMonth).sort().slice(-12);
+
+  makeChart('labourChart', {
+    type:'bar',
+    data:{
+      labels: months.map(m => {
+        const [y,mo] = m.split('-');
+        return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(mo)-1] + ' ' + y.slice(2);
+      }),
+      datasets:[{
+        label:'Hours',
+        data:months.map(m=>byMonth[m]),
+        backgroundColor:PURP+'0.7)',
+        borderColor:PURP+'1)',
+        borderWidth:1, borderRadius:5
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{ color:'rgba(82,183,136,0.06)' } },
+        y:{ grid:{ color:'rgba(82,183,136,0.06)' }, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// ── SHARE SUMMARY ─────────────────────────────────────
+function shareAnalytics() {
+  const books = filterByPeriod(DS('books'), 'date');
+  const income  = books.filter(b=>b.type==='income').reduce((s,b)=>s+(b.amount||0),0);
+  const expense = books.filter(b=>b.type==='expense').reduce((s,b)=>s+(b.amount||0),0);
+  const milkTotal = filterByPeriod(DS('milk'),'date').reduce((s,e)=>s+(e.total||0),0);
+  const eggsTotal = filterByPeriod(DS('eggs'),'date').reduce((s,e)=>s+(e.count||0),0);
+  const p = getProfile();
+  shareWhatsApp(`📈 ${p.name||'Farm'} Analytics — Last ${currentPeriod} days\n\n💵 Income: ${fmtI(income)}\n📊 Expenses: ${fmtI(expense)}\n💰 Net: ${fmtI(income-expense)}\n🥛 Milk: ${fmt(milkTotal)}L\n🥚 Eggs: ${fmtI(eggsTotal)}\n\nPowered by AgriLogic 🌿`);
+}
+
+// ── BUILD ALL ─────────────────────────────────────────
+function buildAll() {
+  buildKPI();
+  buildIncExp();
+  buildProfitTrend();
+  buildMilk();
+  buildEggs();
+  buildWeight();
+  buildAnimalStatus();
+  buildExpenseDonut();
+  buildMonthlyRevenue();
+  buildTasks();
+  buildInventory();
+  buildWater();
+  buildLabour();
+}
+
+initShared('analytics');
+buildAll();
 </script>
 <script>if("serviceWorker"in navigator&&location.protocol!=="file:"){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
-</body></html>
+</body>
+</html>

@@ -1,5 +1,5 @@
 // AgriLogic Service Worker v2 — cache busted
-const CACHE_NAME = 'agrilogic-v2';
+const CACHE_NAME = 'agrilogic-v3';
 
 const ASSETS = [
   './index.html',
@@ -34,6 +34,7 @@ const ASSETS = [
   './water.html',
   './weather.html',
   './weight.html',
+  './analytics.html',
 ];
 
 self.addEventListener('install', event => {
