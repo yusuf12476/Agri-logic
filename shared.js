@@ -99,24 +99,24 @@ var TRANSLATIONS = {
     'Edit Farm Info':'የእርሻ መረጃ አርትዕ','offline':'📡 ከበይነ መረብ ውጭ ነዎት። AI ወደ ኢንተርኔት ያስፈልጋል።'
   },
   ki: {
-    'Main':'Ndiini','Analytics':'Ucambuzi','Diagnosis & Planning':'Uchunguzi na Mpango',
-    'Livestock & Production':'Thiome na Irio','Finance & Support':'Mbeca na Utheru',
-    'Operations':'Miitire','Connect':'Hota',
-    'Dashboard':'Dashibodi','Farm Advisor':'Muthuri wa Murima',
-    'Disease Diagnosis':'Uchunguzi wa Mirimu','Soil Analyser':'Ucambuzi wa Ithaka',
-    'Planting Calendar':'Karandasi ya Kupanda','Weather Advisor':'Muthuri wa Riera',
-    'Animal Registry':'Rejistra ya Nyamuriri','Milk Tracker':'Guthondeka Iria',
-    'Egg Tracker':'Guthondeka Maai','Breeding Tracker':'Guthondeka Ruthiru',
-    'Weight Tracker':'Guthondeka Nduini','Feed Calculator':'Hisabu ya Irio',
-    'Profit Tracker':'Guthondeka Unjuri','Farm Bookkeeping':'Uandishi wa Murima',
-    'Loan Calculator':'Hisabu ya Deni','Insurance Calc':'Hisabu ya Bima',
-    'Subsidy Finder':'Tafuta Ruzuku','Farm Reports':'Ripoti cia Murima',
-    'Inventory':'Hisabu ya Vitu','Task Manager':'Meneja wa Mirimu',
-    'Labour Tracker':'Guthondeka Arimi','Land Manager':'Meneja wa Ithaka',
-    'Water Tracker':'Guthondeka Maai Mamwe','Marketplace':'Soko',
-    'Vet Directory':'Orodha ya Arogi','Suppliers':'Atumiia',
-    'My Farm':'Murima Wakwa','No farm info yet':'Ndiri itheguri ria murima',
-    'Edit Farm Info':'Hindura Itheguri ria Murima','offline':'📡 Uri nja ya intaneti. AI ihitaji intaneti.'
+    'Main':'Ndiini','Analytics':'Gwima Ndeto','Diagnosis & Planning':'Kũhinga Mirimu na Gũthura Njira',
+    'Livestock & Production':'Thiome na Irio','Finance & Support':'Mbeca na Ũteithio',
+    'Operations':'Miitire','Connect':'Hũthana',
+    'Dashboard':'Ũrĩa wa Ndeto','Farm Advisor':'Mũthuri wa Mũgũnda',
+    'Disease Diagnosis':'Kũhinga Mirimu','Soil Analyser':'Gwima Ithaka',
+    'Planting Calendar':'Ndiaro ya Gũtema','Weather Advisor':'Mũthuri wa Riera',
+    'Animal Registry':'Ndũika ya Nyamũirũ','Milk Tracker':'Gwima Iria',
+    'Egg Tracker':'Gwima Maai ma Ngũkũ','Breeding Tracker':'Gwima Ũhiũ',
+    'Weight Tracker':'Gwima Nduini','Feed Calculator':'Kũhesabu Irio',
+    'Profit Tracker':'Gwima Unjuri','Farm Bookkeeping':'Ũandĩki wa Mũgũnda',
+    'Loan Calculator':'Kũhesabu Ũndũ wa Deni','Insurance Calc':'Kũhesabu Bima',
+    'Subsidy Finder':'Gũtũmbũra Ũteithio wa Gavamende','Farm Reports':'Maarifa ma Mũgũnda',
+    'Inventory':'Gwima Indo','Task Manager':'Mũratairu wa Miitire',
+    'Labour Tracker':'Gwima Arĩmi','Land Manager':'Mũratairu wa Ithaka',
+    'Water Tracker':'Gwima Maĩ','Marketplace':'Mũhuro',
+    'Vet Directory':'Ndũika ya Adaktari a Nyamũirũ','Suppliers':'Arĩndĩri a Indo',
+    'My Farm':'Mũgũnda Wakwa','No farm info yet':'Ndĩrĩ ũhoro wa mũgũnda',
+    'Edit Farm Info':'Hindura Ũhoro wa Mũgũnda','offline':'📡 Ũrĩ nja ya intaneti. AI ĩhitagie intaneti.'
   },
   lg: {
     'Main':'Omutwe','Analytics':'Enteekateeka','Diagnosis & Planning':'Obugumivu n\'Entegeka',
@@ -147,7 +147,7 @@ var T = function(key) {
 
 var isSwahili = function() { return currentLang !== 'en'; };
 var langNote = function() {
-  var notes = {sw:'Jibu kwa Kiswahili.',fr:'Repondez en francais.',am:'Respond in Amharic if possible.',ki:'Cokio na Gikuyu.',lg:'Ddamu mu Luganda.'};
+  var notes = {sw:'Jibu kwa Kiswahili.',fr:'Repondez en francais.',am:'Respond in Amharic if possible.',ki:'Geria gũcooka na Gĩgĩkũyũ.',lg:'Ddamu mu Luganda.'};
   return notes[currentLang] || 'Respond in English.';
 };
 
