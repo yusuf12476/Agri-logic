@@ -610,8 +610,8 @@ function setLang(code) {
     var banner = document.getElementById('offlineBanner');
     if (banner) banner.textContent = T('offline');
     // Rebuild any JS-generated page content that uses lang
-    if (typeof buildModules === 'function') buildModules();
-    if (typeof refreshDashboard === 'function') refreshDashboard();
+    // Fire event so page-specific renderers can respond
+    document.dispatchEvent(new Event('al:langchange'));
     if (typeof renderList === 'function') renderList();
   } catch(e) {}
 }
