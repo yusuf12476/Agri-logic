@@ -263,24 +263,24 @@ select option{background:var(--deep);}
   <div class="data-card" style="text-align:center;padding:12px 8px;cursor:pointer" onclick="selectAnimal(this,'fish-catfish','🐠','Catfish')"><div style="font-size:24px;margin-bottom:5px">🐠</div><div style="font-size:11px;font-weight:600">Catfish</div><div style="font-size:9px;color:var(--muted)">Kambale</div></div>
 </div>
 <div class="fg">
-  <div class="form-card"><div class="card-head"><span class="card-icon">📋</span><h3>Farm Details</h3></div><div class="card-body">
-    <div class="g2"><div class="field-group"><label class="field-label">Animals Count</label><input type="number" id="count" placeholder="e.g. 500"></div><div class="field-group"><label class="field-label">Stage</label><div class="sw"><select id="stage"><option value="">Select</option><option value="starter">Starter</option><option value="grower">Grower</option><option value="finisher">Finisher</option><option value="laying">Laying</option><option value="maintenance">Maintenance</option></select></div></div></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Goal</label><div class="sw"><select id="goal"><option value="">Select</option><option value="fast-growth">Fast Growth</option><option value="egg-production">Max Eggs</option><option value="milk-production">Max Milk</option><option value="low-cost">Low Cost</option><option value="balanced">Balanced</option></select></div></div><div class="field-group"><label class="field-label">Batch Size (kg)</label><input type="number" id="batch" placeholder="e.g. 70"></div></div>
-    <div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">📋</span><h3 data-i18n="Farm Details">Farm Details</h3></div><div class="card-body">
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Animals Count">Animals Count</label><input type="number" id="count" placeholder="e.g. 500"></div><div class="field-group"><label class="field-label" data-i18n="Stage">Stage</label><div class="sw"><select id="stage"><option value="">Select</option><option value="starter">Starter</option><option value="grower">Grower</option><option value="finisher">Finisher</option><option value="laying">Laying</option><option value="maintenance">Maintenance</option></select></div></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Goal">Goal</label><div class="sw"><select id="goal"><option value="">Select</option><option value="fast-growth">Fast Growth</option><option value="egg-production">Max Eggs</option><option value="milk-production">Max Milk</option><option value="low-cost">Low Cost</option><option value="balanced">Balanced</option></select></div></div><div class="field-group"><label class="field-label" data-i18n="Batch Size (kg)">Batch Size (kg)</label><input type="number" id="batch" placeholder="e.g. 70"></div></div>
+    <div class="field-group"><label class="field-label" data-i18n="Currency">Currency</label><div class="sw"><select id="currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div>
   </div></div>
-  <div class="form-card"><div class="card-head"><span class="card-icon">🌾</span><h3>Ingredients & Prices</h3></div><div class="card-body">
+  <div class="form-card"><div class="card-head"><span class="card-icon">🌾</span><h3 data-i18n="Ingredients & Prices">Ingredients & Prices</h3></div><div class="card-body">
     <div class="field-label" style="margin-bottom:8px">Quick-add:</div>
     <div class="tags" id="presetChips"></div>
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr 28px;gap:7px;padding-bottom:6px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase"><span>Ingredient</span><span>Qty kg</span><span>Price/kg</span><span></span></div>
     <div id="ingrRows"></div>
-    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="addRow()">+ Add Ingredient</button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="addRow()" data-i18n="+ Add Ingredient">+ Add Ingredient</button>
   </div></div>
 </div>
-<button class="btn btn-gold btn-full" id="calcBtn" onclick="runCalc()">🧮 Calculate Feed Formula</button>
+<button class="btn btn-gold btn-full" id="calcBtn" onclick="runCalc()" data-i18n="🧮 Calculate Feed Formula">🧮 Calculate Feed Formula</button>
 <div class="loading-state" id="loading"><div class="spinner" style="border-top-color:var(--gold)"></div><strong>Calculating...</strong><p>Optimising your feed formula</p></div>
 <div class="result-section" id="result">
   <div class="stat-strip" id="statStrip"></div>
-  <div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3>Feed Formula</h3></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ingredient</th><th>Amount</th><th>% Mix</th><th>Cost</th></tr></thead><tbody id="formulaBody"></tbody></table></div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3 data-i18n="Feed Formula">Feed Formula</h3></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ingredient</th><th>Amount</th><th>% Mix</th><th>Cost</th></tr></thead><tbody id="formulaBody"></tbody></table></div></div>
   <div class="rgrid" id="resultGrid"></div>
 </div>
 <div class="hist-section"><div class="hist-title">📂 Formula History</div><div id="histList"><div class="hist-empty">No formulas yet.</div></div></div>

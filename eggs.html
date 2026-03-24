@@ -242,14 +242,14 @@ select option{background:var(--deep);}
 <div class="page-header"><div class="page-badge" style="background:rgba(212,160,23,0.1);border-color:rgba(212,160,23,0.25);color:var(--gold-light)">🥚 Eggs</div><h2>Egg Production <em>Tracker</em></h2></div>
 
 <div class="fg">
-  <div class="form-card"><div class="card-head"><span class="card-icon">🥚</span><h3>Log Egg Collection</h3></div><div class="card-body">
-    <div class="g2"><div class="field-group"><label class="field-label">Date</label><input type="date" id="e-date"></div><div class="field-group"><label class="field-label">Flock / Pen ID</label><input type="text" id="e-flock" placeholder="e.g. Pen A or Layer 1"></div></div>
-    <div class="g3"><div class="field-group"><label class="field-label">Eggs Collected</label><input type="number" id="e-count" placeholder="e.g. 240" min="0"></div><div class="field-group"><label class="field-label">Broken/Rejected</label><input type="number" id="e-broken" placeholder="e.g. 5" min="0"></div><div class="field-group"><label class="field-label">Flock Size</label><input type="number" id="e-size" placeholder="e.g. 300" min="0"></div></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Sale Price / Egg</label><input type="number" id="e-price" placeholder="e.g. 15" step="0.01"></div><div class="field-group"><label class="field-label">Feed Used (kg)</label><input type="number" id="e-feed" placeholder="e.g. 42" step="0.1"></div></div>
-    <div class="field-group"><label class="field-label">Notes</label><input type="text" id="e-notes" placeholder="e.g. New feed brand, stress observed..."></div>
-    <button class="btn btn-gold" style="width:100%" onclick="logEgg()">+ Log Entry</button>
+  <div class="form-card"><div class="card-head"><span class="card-icon">🥚</span><h3 data-i18n="Log Egg Collection">Log Egg Collection</h3></div><div class="card-body">
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Date">Date</label><input type="date" id="e-date"></div><div class="field-group"><label class="field-label" data-i18n="Flock / Pen ID">Flock / Pen ID</label><input type="text" id="e-flock" placeholder="e.g. Pen A or Layer 1"></div></div>
+    <div class="g3"><div class="field-group"><label class="field-label" data-i18n="Eggs Collected">Eggs Collected</label><input type="number" id="e-count" placeholder="e.g. 240" min="0"></div><div class="field-group"><label class="field-label" data-i18n="Broken/Rejected">Broken/Rejected</label><input type="number" id="e-broken" placeholder="e.g. 5" min="0"></div><div class="field-group"><label class="field-label" data-i18n="Flock Size">Flock Size</label><input type="number" id="e-size" placeholder="e.g. 300" min="0"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Sale Price / Egg">Sale Price / Egg</label><input type="number" id="e-price" placeholder="e.g. 15" step="0.01"></div><div class="field-group"><label class="field-label" data-i18n="Feed Used (kg)">Feed Used (kg)</label><input type="number" id="e-feed" placeholder="e.g. 42" step="0.1"></div></div>
+    <div class="field-group"><label class="field-label" data-i18n="Notes">Notes</label><input type="text" id="e-notes" placeholder="e.g. New feed brand, stress observed..."></div>
+    <button class="btn btn-gold" style="width:100%" onclick="logEgg()" data-i18n="+ Log Entry">+ Log Entry</button>
   </div></div>
-  <div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3>Flock Stats</h3></div><div class="card-body" id="eggSummary"><p style="color:var(--muted);font-size:13px">No egg records yet.</p></div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3 data-i18n="Flock Stats">Flock Stats</h3></div><div class="card-body" id="eggSummary"><p style="color:var(--muted);font-size:13px">No egg records yet.</p></div></div>
 </div>
 <div class="hist-section"><div class="hist-title">📋 Egg Log</div>
 <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Flock</th><th>Collected</th><th>Broken</th><th>Laying %</th><th>Revenue</th><th>Feed kg</th><th></th></tr></thead><tbody id="eggBody"></tbody></table></div>

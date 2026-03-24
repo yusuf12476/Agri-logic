@@ -277,13 +277,13 @@ select option{background:var(--deep);}
             </div>
           </div>
           <div id="tab-text" style="display:none">
-            <div class="field-group"><label class="field-label">Describe symptoms</label><textarea id="symptomText" rows="4" placeholder="e.g. My chickens have swollen eyes, greenish droppings, not eating since 2 days..."></textarea></div>
+            <div class="field-group"><label class="field-label" data-i18n="Describe symptoms">Describe symptoms</label><textarea id="symptomText" rows="4" placeholder="e.g. My chickens have swollen eyes, greenish droppings, not eating since 2 days..."></textarea></div>
           </div>
           <div class="g2" style="margin-top:13px">
-            <div class="field-group"><label class="field-label">Category</label><div class="sw"><select id="category"><option value="">Select category</option><option>🐔 Poultry</option><option>🐄 Cattle</option><option>🐐 Goats</option><option>🌾 Crops</option><option>🥬 Vegetables</option><option>🍋 Fruits</option><option>🐟 Fish</option></select></div></div>
-            <div class="field-group"><label class="field-label">Urgency</label><div class="sw"><select id="urgency"><option value="normal">Normal check</option><option value="urgent">⚠️ Urgent</option><option value="outbreak">🚨 Outbreak</option></select></div></div>
+            <div class="field-group"><label class="field-label" data-i18n="Category">Category</label><div class="sw"><select id="category"><option value="">Select category</option><option>🐔 Poultry</option><option>🐄 Cattle</option><option>🐐 Goats</option><option>🌾 Crops</option><option>🥬 Vegetables</option><option>🍋 Fruits</option><option>🐟 Fish</option></select></div></div>
+            <div class="field-group"><label class="field-label" data-i18n="Urgency">Urgency</label><div class="sw"><select id="urgency"><option value="normal">Normal check</option><option value="urgent">⚠️ Urgent</option><option value="outbreak">🚨 Outbreak</option></select></div></div>
           </div>
-          <button class="btn btn-green btn-full" style="margin-top:13px" id="diagnoseBtn" onclick="runDiagnosis()">🔬 Diagnose Now</button>
+          <button class="btn btn-green btn-full" style="margin-top:13px" id="diagnoseBtn" onclick="runDiagnosis()" data-i18n="🔬 Diagnose Now">🔬 Diagnose Now</button>
         </div>
       </div>
       <div class="loading-state" id="loading"><div class="spinner"></div><strong>Analysing...</strong><p>AI is examining your submission</p></div>
@@ -299,7 +299,7 @@ select option{background:var(--deep);}
         </div>
         <div class="rgrid" id="resultGrid"></div>
         <div style="margin-top:12px">
-          <button class="btn btn-wa btn-sm" onclick="shareResultWhatsApp()">📱 Share Result on WhatsApp</button>
+          <button class="btn btn-wa btn-sm" onclick="shareResultWhatsApp()" data-i18n="📱 Share Result on WhatsApp">📱 Share Result on WhatsApp</button>
         </div>
       </div>
       <div class="hist-section"><div class="hist-title">📂 Recent Diagnoses</div><div id="histList"><div class="hist-empty">No diagnoses yet.</div></div></div>

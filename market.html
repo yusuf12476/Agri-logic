@@ -242,8 +242,8 @@ select option{background:var(--deep);}
 <div class="page-header"><div class="page-badge" style="background:rgba(212,160,23,0.1);border-color:rgba(212,160,23,0.25);color:var(--gold-light)">🏪 Market</div><h2>Farm <em>Marketplace</em></h2></div>
 
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-  <button class="btn btn-green btn-sm" onclick="openModal('sell')">📤 I'm Selling</button>
-  <button class="btn btn-blue btn-sm" onclick="openModal('buy')">📥 I'm Buying</button>
+  <button class="btn btn-green btn-sm" onclick="openModal('sell')" data-i18n="📤 I'm Selling">📤 I'm Selling</button>
+  <button class="btn btn-blue btn-sm" onclick="openModal('buy')" data-i18n="📥 I'm Buying">📥 I'm Buying</button>
   <div class="ftabs"><div class="ftab active" id="mf-all" onclick="filterMarket('all')">All</div><div class="ftab" id="mf-sell" onclick="filterMarket('sell')">Selling</div><div class="ftab" id="mf-buy" onclick="filterMarket('buy')">Buying</div></div>
   <input type="text" id="marketSearch" placeholder="🔍 Search..." onkeyup="renderMarket()" style="flex:1;min-width:160px">
 </div>

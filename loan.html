@@ -242,19 +242,19 @@ select option{background:var(--deep);}
 <div class="page-header"><div class="page-badge" style="background:rgba(82,183,136,0.1);border-color:rgba(82,183,136,0.25);color:var(--green)">💳 Loan</div><h2>Farm Loan <em>Calculator</em></h2></div>
 
 <div class="fg">
-  <div class="form-card"><div class="card-head"><span class="card-icon">💳</span><h3>Loan Details</h3></div><div class="card-body">
-    <div class="field-group"><label class="field-label">Loan Amount</label><input type="number" id="ln-amount" placeholder="e.g. 50000" min="0"></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Annual Interest Rate (%)</label><input type="number" id="ln-rate" placeholder="e.g. 14" step="0.1"></div><div class="field-group"><label class="field-label">Term (months)</label><input type="number" id="ln-term" placeholder="e.g. 12" min="1"></div></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="ln-currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div><div class="field-group"><label class="field-label">Loan Type</label><div class="sw"><select id="ln-type"><option value="reducing">Reducing Balance</option><option value="flat">Flat Rate</option></select></div></div></div>
-    <div class="field-group"><label class="field-label">Loan Purpose</label><input type="text" id="ln-purpose" placeholder="e.g. Buy 500 broiler chicks"></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">💳</span><h3 data-i18n="Loan Details">Loan Details</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label" data-i18n="Loan Amount">Loan Amount</label><input type="number" id="ln-amount" placeholder="e.g. 50000" min="0"></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Annual Interest Rate (%)">Annual Interest Rate (%)</label><input type="number" id="ln-rate" placeholder="e.g. 14" step="0.1"></div><div class="field-group"><label class="field-label" data-i18n="Term (months)">Term (months)</label><input type="number" id="ln-term" placeholder="e.g. 12" min="1"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Currency">Currency</label><div class="sw"><select id="ln-currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div><div class="field-group"><label class="field-label" data-i18n="Loan Type">Loan Type</label><div class="sw"><select id="ln-type"><option value="reducing">Reducing Balance</option><option value="flat">Flat Rate</option></select></div></div></div>
+    <div class="field-group"><label class="field-label" data-i18n="Loan Purpose">Loan Purpose</label><input type="text" id="ln-purpose" placeholder="e.g. Buy 500 broiler chicks"></div>
   </div></div>
-  <div class="form-card"><div class="card-head"><span class="card-icon">🌾</span><h3>Farm Revenue Context</h3></div><div class="card-body">
-    <div class="field-group"><label class="field-label">Main Product</label><input type="text" id="ln-product" placeholder="e.g. Broiler chicken"></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Sale Price / Unit</label><input type="number" id="ln-price" placeholder="e.g. 650" step="0.01"></div><div class="field-group"><label class="field-label">Cost / Unit</label><input type="number" id="ln-cost" placeholder="e.g. 420" step="0.01"></div></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Units / Batch</label><input type="number" id="ln-units" placeholder="e.g. 480"></div><div class="field-group"><label class="field-label">Batches / Year</label><input type="number" id="ln-batches" placeholder="e.g. 4"></div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">🌾</span><h3 data-i18n="Farm Revenue Context">Farm Revenue Context</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label" data-i18n="Main Product">Main Product</label><input type="text" id="ln-product" placeholder="e.g. Broiler chicken"></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Sale Price / Unit">Sale Price / Unit</label><input type="number" id="ln-price" placeholder="e.g. 650" step="0.01"></div><div class="field-group"><label class="field-label" data-i18n="Cost / Unit">Cost / Unit</label><input type="number" id="ln-cost" placeholder="e.g. 420" step="0.01"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Units / Batch">Units / Batch</label><input type="number" id="ln-units" placeholder="e.g. 480"></div><div class="field-group"><label class="field-label" data-i18n="Batches / Year">Batches / Year</label><input type="number" id="ln-batches" placeholder="e.g. 4"></div></div>
   </div></div>
 </div>
-<button class="btn btn-green btn-full" id="loanBtn" onclick="runLoan()">💳 Calculate Repayment Plan</button>
+<button class="btn btn-green btn-full" id="loanBtn" onclick="runLoan()" data-i18n="💳 Calculate Repayment Plan">💳 Calculate Repayment Plan</button>
 <div class="loading-state" id="loading"><div class="spinner"></div><strong>Calculating...</strong><p>Building your repayment plan</p></div>
 <div class="result-section" id="result"></div>
 

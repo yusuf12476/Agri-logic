@@ -242,8 +242,8 @@ select option{background:var(--deep);}
 <div class="page-header"><div class="page-badge" style="background:rgba(192,57,43,0.1);border-color:rgba(192,57,43,0.25);color:#e74c3c">🏥 Vets</div><h2>Veterinary <em>Directory</em></h2></div>
 
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-  <button class="btn btn-green btn-sm" onclick="openVetModal()">+ Add Vet Contact</button>
-  <button class="btn btn-ghost btn-sm" onclick="openVisitModal()">+ Log Vet Visit</button>
+  <button class="btn btn-green btn-sm" onclick="openVetModal()" data-i18n="+ Add Vet Contact">+ Add Vet Contact</button>
+  <button class="btn btn-ghost btn-sm" onclick="openVisitModal()" data-i18n="+ Log Vet Visit">+ Log Vet Visit</button>
 </div>
 <div class="card-grid" id="vetGrid"></div>
 <div class="hist-empty" id="vetEmpty">No vets saved yet.</div>
@@ -265,7 +265,7 @@ select option{background:var(--deep);}
   </div>
 </div>
 <div class="modal-overlay" id="visitModal">
-  <div class="modal"><h3>Log Vet Visit</h3><p class="modal-sub">Record an animal health consultation.</p>
+  <div class="modal"><h3 data-i18n="Log Vet Visit">Log Vet Visit</h3><p class="modal-sub">Record an animal health consultation.</p>
     <div class="modal-fields">
       <input type="date" id="vv-date">
       <div class="sw"><select id="vv-vet"><option value="">Select Vet</option></select></div>

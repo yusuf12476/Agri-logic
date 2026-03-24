@@ -254,26 +254,26 @@ select option{background:var(--deep);}
 
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
   <div class="ftabs" id="batchTabs"><div class="ftab active" id="btab-0" onclick="selectBatch(0)">Batch 1</div></div>
-  <button class="btn btn-green btn-sm" onclick="addBatch()">+ New Batch</button>
+  <button class="btn btn-green btn-sm" onclick="addBatch()" data-i18n="+ New Batch">+ New Batch</button>
 </div>
 <div class="fg">
-  <div class="form-card"><div class="card-head"><span class="card-icon">📋</span><h3>Batch Info</h3></div><div class="card-body">
-    <div class="field-group"><label class="field-label">Batch Name</label><input type="text" id="bname" placeholder="e.g. Broiler March 2026"></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Animal/Crop</label><div class="sw"><select id="banimal"><option value="">Select</option><option>🐔 Broiler</option><option>🥚 Layer</option><option>🐂 Bull</option><option>🥛 Dairy Cow</option><option>🐐 Goats</option><option>🐟 Tilapia</option><option>🌽 Maize</option><option>🍅 Tomatoes</option><option>🌾 Other</option></select></div></div><div class="field-group"><label class="field-label">Count</label><input type="number" id="bcount" placeholder="e.g. 500"></div></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Start Date</label><input type="date" id="bstart"></div><div class="field-group"><label class="field-label">End Date</label><input type="date" id="bend"></div></div>
-    <div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="bcurrency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">📋</span><h3 data-i18n="Batch Info">Batch Info</h3></div><div class="card-body">
+    <div class="field-group"><label class="field-label" data-i18n="Batch Name">Batch Name</label><input type="text" id="bname" placeholder="e.g. Broiler March 2026"></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Animal/Crop">Animal/Crop</label><div class="sw"><select id="banimal"><option value="">Select</option><option>🐔 Broiler</option><option>🥚 Layer</option><option>🐂 Bull</option><option>🥛 Dairy Cow</option><option>🐐 Goats</option><option>🐟 Tilapia</option><option>🌽 Maize</option><option>🍅 Tomatoes</option><option>🌾 Other</option></select></div></div><div class="field-group"><label class="field-label" data-i18n="Count">Count</label><input type="number" id="bcount" placeholder="e.g. 500"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Start Date">Start Date</label><input type="date" id="bstart"></div><div class="field-group"><label class="field-label" data-i18n="End Date">End Date</label><input type="date" id="bend"></div></div>
+    <div class="field-group"><label class="field-label" data-i18n="Currency">Currency</label><div class="sw"><select id="bcurrency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div>
   </div></div>
-  <div class="form-card"><div class="card-head"><span class="card-icon">💵</span><h3>Revenue</h3></div><div class="card-body">
-    <div class="g2"><div class="field-group"><label class="field-label">Units Sold</label><input type="number" id="bsold" placeholder="e.g. 480"></div><div class="field-group"><label class="field-label">Sale Price/Unit</label><input type="number" id="bprice" placeholder="e.g. 650"></div></div>
-    <div class="g2"><div class="field-group"><label class="field-label">By-product Revenue</label><input type="number" id="bbyproduct" placeholder="eggs, milk, manure..."></div><div class="field-group"><label class="field-label">Mortality (units)</label><input type="number" id="bmortality" placeholder="e.g. 20"></div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">💵</span><h3 data-i18n="Revenue">Revenue</h3></div><div class="card-body">
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Units Sold">Units Sold</label><input type="number" id="bsold" placeholder="e.g. 480"></div><div class="field-group"><label class="field-label" data-i18n="Sale Price/Unit">Sale Price/Unit</label><input type="number" id="bprice" placeholder="e.g. 650"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="By-product Revenue">By-product Revenue</label><input type="number" id="bbyproduct" placeholder="eggs, milk, manure..."></div><div class="field-group"><label class="field-label" data-i18n="Mortality (units)">Mortality (units)</label><input type="number" id="bmortality" placeholder="e.g. 20"></div></div>
   </div></div>
-  <div class="form-card full"><div class="card-head"><span class="card-icon">📊</span><h3>Cost Breakdown</h3></div><div class="card-body">
+  <div class="form-card full"><div class="card-head"><span class="card-icon">📊</span><h3 data-i18n="Cost Breakdown">Cost Breakdown</h3></div><div class="card-body">
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr 28px;gap:7px;padding-bottom:6px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase"><span>Cost Item</span><span>Category</span><span>Amount</span><span></span></div>
     <div id="costRows"></div>
-    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="addCostRow()">+ Add Cost Item</button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="addCostRow()" data-i18n="+ Add Cost Item">+ Add Cost Item</button>
   </div></div>
 </div>
-<button class="btn btn-full" id="analyseBtn" onclick="runAnalysis()" style="background:linear-gradient(135deg,#1a6b3a,#27ae60);color:white;font-size:14px;font-weight:600;border:none;border-radius:10px;padding:14px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.22s">📊 Analyse Profit & Loss</button>
+<button class="btn btn-full" id="analyseBtn" onclick="runAnalysis()" style="background:linear-gradient(135deg,#1a6b3a,#27ae60);color:white;font-size:14px;font-weight:600;border:none;border-radius:10px;padding:14px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.22s" data-i18n="📊 Analyse Profit & Loss">📊 Analyse Profit & Loss</button>
 <div class="loading-state" id="loading"><div class="spinner" style="border-top-color:#27ae60"></div><strong>Analysing...</strong><p>Calculating your profit</p></div>
 <div class="result-section" id="result">
   <div class="stat-strip" id="statStrip"></div>

@@ -242,7 +242,7 @@ select option{background:var(--deep);}
 <div class="page-header"><div class="page-badge" style="background:rgba(124,92,58,0.12);border-color:rgba(124,92,58,0.28);color:#d4956a">🐄 Animals</div><h2>Animal Registry & <em>Health Records</em></h2></div>
 
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-  <button class="btn btn-green btn-sm" onclick="openModal()">+ Add Animal</button>
+  <button class="btn btn-green btn-sm" onclick="openModal()" data-i18n="+ Add Animal">+ Add Animal</button>
   <div class="sw" style="min-width:150px"><select id="filterType" onchange="renderList()"><option value="">All Types</option><option>Broiler</option><option>Layer</option><option>Chick</option><option>Bull</option><option>Dairy Cow</option><option>Goat</option><option>Sheep</option><option>Tilapia</option><option>Catfish</option></select></div>
   <input type="text" id="searchInput" placeholder="🔍 Search ID or name..." onkeyup="renderList()" style="flex:1;min-width:180px">
 </div>
@@ -266,7 +266,7 @@ select option{background:var(--deep);}
   </div>
 </div>
 <div class="modal-overlay" id="healthModal">
-  <div class="modal"><h3>Add Health Event</h3><p class="modal-sub" id="healthSub">Recording event</p>
+  <div class="modal"><h3 data-i18n="Add Health Event">Add Health Event</h3><p class="modal-sub" id="healthSub">Recording event</p>
     <div class="modal-fields">
       <div class="sw"><select id="he-type"><option value="vaccination">💉 Vaccination</option><option value="treatment">💊 Treatment</option><option value="deworming">🪱 Deworming</option><option value="weighing">⚖️ Weight Check</option><option value="illness">🤒 Illness</option><option value="note">📝 Note</option></select></div>
       <input type="date" id="he-date"><input type="text" id="he-desc" placeholder="Drug used / Weight / Description"><input type="number" id="he-cost" placeholder="Cost (optional)" step="0.01">

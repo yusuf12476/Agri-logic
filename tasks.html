@@ -242,14 +242,14 @@ select option{background:var(--deep);}
 <div class="page-header"><div class="page-badge" style="background:rgba(142,68,173,0.1);border-color:rgba(142,68,173,0.25);color:#bb8fce">📋 Tasks</div><h2>Farm Task <em>Manager</em></h2></div>
 
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-  <button class="btn btn-purple btn-sm" onclick="openModal()">+ Add Task</button>
+  <button class="btn btn-purple btn-sm" onclick="openModal()" data-i18n="+ Add Task">+ Add Task</button>
   <div class="ftabs"><div class="ftab active" id="tf-all" onclick="filterTasks('all')">All</div><div class="ftab" id="tf-today" onclick="filterTasks('today')">Today</div><div class="ftab" id="tf-pending" onclick="filterTasks('pending')">Pending</div><div class="ftab" id="tf-done" onclick="filterTasks('done')">Done</div></div>
 </div>
 <div id="taskOverdue" style="margin-bottom:10px"></div>
 <div id="taskList"></div>
 <div class="hist-empty" id="taskEmpty">No tasks yet. Add your first farm task.</div>
 <div class="modal-overlay" id="taskModal">
-  <div class="modal"><h3>Add Farm Task</h3><p class="modal-sub">Schedule with category, priority and due date.</p>
+  <div class="modal"><h3 data-i18n="Add Farm Task">Add Farm Task</h3><p class="modal-sub">Schedule with category, priority and due date.</p>
     <div class="modal-fields">
       <input type="text" id="tk-title" placeholder="Task (e.g. Deworm flock on Day 14)">
       <div class="sw"><select id="tk-cat"><option value="health">💉 Animal Health</option><option value="feed">🌾 Feeding</option><option value="crop">🌱 Crops</option><option value="equipment">🔧 Equipment</option><option value="market">🏪 Market</option><option value="finance">💰 Finance</option><option value="other">📋 Other</option></select></div>

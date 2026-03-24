@@ -241,15 +241,15 @@ select option{background:var(--deep);}
 <div class="main-content"><div class="page">
 <div class="page-header"><div class="page-badge" style="background:rgba(46,134,171,0.1);border-color:rgba(46,134,171,0.25);color:#54c6eb">📊 Reports</div><h2>Monthly & Annual <em>Farm Reports</em></h2></div>
 
-<div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3>Generate Report</h3></div><div class="card-body">
-  <div class="g3"><div class="field-group"><label class="field-label">Report Type</label><div class="sw"><select id="rpt-type"><option value="monthly">Monthly Summary</option><option value="quarterly">Quarterly Report</option><option value="annual">Annual Review</option><option value="livestock">Livestock Report</option><option value="financial">Financial Report</option></select></div></div><div class="field-group"><label class="field-label">Period</label><div class="sw"><select id="rpt-period"><option value="2026-03">March 2026</option><option value="2026-02">February 2026</option><option value="2026-01">January 2026</option><option value="2025-12">December 2025</option><option value="2025-Q4">Q4 2025</option><option value="2025">Full Year 2025</option></select></div></div><div class="field-group"><label class="field-label">Currency</label><div class="sw"><select id="rpt-currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div></div>
-  <button class="btn btn-blue btn-full" id="rptBtn" onclick="runReport()">📊 Generate AI Farm Report</button>
+<div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3 data-i18n="Generate Report">Generate Report</h3></div><div class="card-body">
+  <div class="g3"><div class="field-group"><label class="field-label" data-i18n="Report Type">Report Type</label><div class="sw"><select id="rpt-type"><option value="monthly">Monthly Summary</option><option value="quarterly">Quarterly Report</option><option value="annual">Annual Review</option><option value="livestock">Livestock Report</option><option value="financial">Financial Report</option></select></div></div><div class="field-group"><label class="field-label" data-i18n="Period">Period</label><div class="sw"><select id="rpt-period"><option value="2026-03">March 2026</option><option value="2026-02">February 2026</option><option value="2026-01">January 2026</option><option value="2025-12">December 2025</option><option value="2025-Q4">Q4 2025</option><option value="2025">Full Year 2025</option></select></div></div><div class="field-group"><label class="field-label" data-i18n="Currency">Currency</label><div class="sw"><select id="rpt-currency"><option>KES</option><option>TZS</option><option>UGX</option><option>USD</option></select></div></div></div>
+  <button class="btn btn-blue btn-full" id="rptBtn" onclick="runReport()" data-i18n="📊 Generate AI Farm Report">📊 Generate AI Farm Report</button>
 </div></div>
 <div class="loading-state" id="loading"><div class="spinner" style="border-top-color:#54c6eb"></div><strong>Generating report...</strong><p>AI is compiling your farm data</p></div>
 <div class="result-section" id="result">
   <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-    <button class="btn btn-wa btn-sm" onclick="shareReport()">📱 Share on WhatsApp</button>
-    <button class="btn btn-ghost btn-sm" onclick="copyReport()">📋 Copy Report</button>
+    <button class="btn btn-wa btn-sm" onclick="shareReport()" data-i18n="📱 Share on WhatsApp">📱 Share on WhatsApp</button>
+    <button class="btn btn-ghost btn-sm" onclick="copyReport()" data-i18n="📋 Copy Report">📋 Copy Report</button>
   </div>
   <div id="rptContent"></div>
 </div>

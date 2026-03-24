@@ -242,8 +242,8 @@ select option{background:var(--deep);}
 <div class="page-header"><div class="page-badge" style="background:rgba(142,68,173,0.1);border-color:rgba(142,68,173,0.25);color:#bb8fce">👷 Labour</div><h2>Employee & Labour <em>Tracker</em></h2></div>
 
 <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-  <button class="btn btn-purple btn-sm" onclick="openLabourModal()">+ Log Labour Entry</button>
-  <button class="btn btn-ghost btn-sm" onclick="openWorkerModal()">+ Add Worker</button>
+  <button class="btn btn-purple btn-sm" onclick="openLabourModal()" data-i18n="+ Log Labour Entry">+ Log Labour Entry</button>
+  <button class="btn btn-ghost btn-sm" onclick="openWorkerModal()" data-i18n="+ Add Worker">+ Add Worker</button>
 </div>
 <div class="stat-strip" id="labourStats">
   <div class="scard" data-icon="👷"><div class="scard-label">Workers</div><div class="scard-value" id="ls-workers" style="color:var(--purple)">0</div><div class="scard-sub">Registered</div></div>
@@ -254,7 +254,7 @@ select option{background:var(--deep);}
 <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Worker</th><th>Task</th><th>Hours</th><th>Rate/Hr</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody id="labourBody"></tbody></table></div>
 <div class="hist-empty" id="labourEmpty">No labour records yet.</div>
 <div class="modal-overlay" id="labourModal">
-  <div class="modal"><h3>Log Labour Entry</h3><p class="modal-sub">Record a work session for a farm employee.</p>
+  <div class="modal"><h3 data-i18n="Log Labour Entry">Log Labour Entry</h3><p class="modal-sub">Record a work session for a farm employee.</p>
     <div class="modal-fields">
       <input type="date" id="lb-date">
       <div class="sw"><select id="lb-worker"><option value="">Select Worker</option></select></div>
@@ -268,7 +268,7 @@ select option{background:var(--deep);}
   </div>
 </div>
 <div class="modal-overlay" id="workerModal">
-  <div class="modal"><h3>Add Worker</h3><p class="modal-sub">Register a farm employee or casual labourer.</p>
+  <div class="modal"><h3 data-i18n="Add Worker">Add Worker</h3><p class="modal-sub">Register a farm employee or casual labourer.</p>
     <div class="modal-fields">
       <input type="text" id="wk-name" placeholder="Full Name"><input type="text" id="wk-phone" placeholder="📱 Phone number">
       <input type="text" id="wk-role" placeholder="Role (e.g. Farmhand, Driver, Milker)">

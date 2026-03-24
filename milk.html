@@ -242,14 +242,14 @@ select option{background:var(--deep);}
 <div class="page-header"><div class="page-badge" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.15);color:#f0f0f0">🥛 Milk</div><h2>Milk Production <em>Tracker</em></h2></div>
 
 <div class="fg">
-  <div class="form-card"><div class="card-head"><span class="card-icon">🥛</span><h3>Log Milk Production</h3></div><div class="card-body">
-    <div class="g2"><div class="field-group"><label class="field-label">Date</label><input type="date" id="m-date"></div><div class="field-group"><label class="field-label">Animal ID / Name</label><input type="text" id="m-animal" placeholder="e.g. D001 or Bella"></div></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Morning Yield (L)</label><input type="number" id="m-am" placeholder="e.g. 8.5" step="0.1"></div><div class="field-group"><label class="field-label">Evening Yield (L)</label><input type="number" id="m-pm" placeholder="e.g. 7.2" step="0.1"></div></div>
-    <div class="g2"><div class="field-group"><label class="field-label">Quality</label><div class="sw"><select id="m-quality"><option>Normal</option><option>Excellent</option><option>Poor</option><option>Bloody</option><option>Watery</option></select></div></div><div class="field-group"><label class="field-label">Sale Price/L</label><input type="number" id="m-price" placeholder="e.g. 50" step="0.01"></div></div>
-    <div class="field-group"><label class="field-label">Notes</label><input type="text" id="m-notes" placeholder="e.g. After treatment, heat observed..."></div>
-    <button class="btn btn-green" style="width:100%" onclick="logMilk()">+ Log Entry</button>
+  <div class="form-card"><div class="card-head"><span class="card-icon">🥛</span><h3 data-i18n="Log Milk Production">Log Milk Production</h3></div><div class="card-body">
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Date">Date</label><input type="date" id="m-date"></div><div class="field-group"><label class="field-label" data-i18n="Animal ID / Name">Animal ID / Name</label><input type="text" id="m-animal" placeholder="e.g. D001 or Bella"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Morning Yield (L)">Morning Yield (L)</label><input type="number" id="m-am" placeholder="e.g. 8.5" step="0.1"></div><div class="field-group"><label class="field-label" data-i18n="Evening Yield (L)">Evening Yield (L)</label><input type="number" id="m-pm" placeholder="e.g. 7.2" step="0.1"></div></div>
+    <div class="g2"><div class="field-group"><label class="field-label" data-i18n="Quality">Quality</label><div class="sw"><select id="m-quality"><option>Normal</option><option>Excellent</option><option>Poor</option><option>Bloody</option><option>Watery</option></select></div></div><div class="field-group"><label class="field-label" data-i18n="Sale Price/L">Sale Price/L</label><input type="number" id="m-price" placeholder="e.g. 50" step="0.01"></div></div>
+    <div class="field-group"><label class="field-label" data-i18n="Notes">Notes</label><input type="text" id="m-notes" placeholder="e.g. After treatment, heat observed..."></div>
+    <button class="btn btn-green" style="width:100%" onclick="logMilk()" data-i18n="+ Log Entry">+ Log Entry</button>
   </div></div>
-  <div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3>Summary</h3></div><div class="card-body" id="milkSummary"><p style="color:var(--muted);font-size:13px">No milk records yet.</p></div></div>
+  <div class="form-card"><div class="card-head"><span class="card-icon">📊</span><h3 data-i18n="Summary">Summary</h3></div><div class="card-body" id="milkSummary"><p style="color:var(--muted);font-size:13px">No milk records yet.</p></div></div>
 </div>
 <div class="hist-section"><div class="hist-title">📋 Milk Log</div>
 <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Animal</th><th>AM (L)</th><th>PM (L)</th><th>Total</th><th>Quality</th><th>Revenue</th><th></th></tr></thead><tbody id="milkBody"></tbody></table></div>
