@@ -27,6 +27,9 @@
   --shadow2: rgba(30,18,8,0.18);
   --glow: rgba(192,120,8,0.18);
   --sidebar-w: 252px;
+  --transition: 0.2s ease;
+  --radius-lg: 14px;
+  --shadow-glow: 0 0 0 3px rgba(192,120,8,0.18);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -611,9 +614,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 .puz-text{font-size:13px;color:#888;font-weight:500;}
 .puz-sub{font-size:11px;color:#bbb;margin-top:2px;}
 
-/* ── PERF: content-visibility for inactive pages ── */
-.page{content-visibility:auto;contain-intrinsic-size:0 600px;}
-.page.active{content-visibility:visible;}
+/* pages are shown/hidden via display:block on .active */
 
 @media(max-width:767px){
   .iot-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
@@ -1025,7 +1026,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 body::before {
   content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='1'/%3E%3C/svg%3E");
-  opacity:0.018;mix-blend-mode:multiply;
+  opacity:0.018;mix-blend-mode:multiply;z-index:1;
 }
 
 /* ── Upgraded root colours ── */
@@ -1799,12 +1800,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <!-- Alerts summary -->
           <div class="card">
             <div class="card-header"><div class="card-title">🔔 Recent Alerts</div><button class="btn btn-ghost btn-sm" onclick="nav('alerts',document.querySelector('[onclick*=alerts]'))">View All</button></div>
-            <div class="card-body" style="padding:14px" id="dash-alerts"></div></div>
-              <div class="alert-strip as-danger">🐐 8 goats — respiratory symptoms, isolated<div class="alert-time">Vet Dr. Osei notified</div></div>
-              <div class="alert-strip as-warning">💧 Zone 3 pump — low pressure detected<div class="alert-time">Maintenance assigned</div></div>
-              <div class="alert-strip as-warning">📦 Glyphosate herbicide critically low (5 L)<div class="alert-time">Reorder suggested</div></div>
-              <div class="alert-strip as-success">✅ Pesticide schedule — Fields 1–3 complete<div class="alert-time">Today 08:30</div></div>
-            </div>
+            <div class="card-body" style="padding:14px" id="dash-alerts"></div>
           </div>
 
           <!-- Today's tasks -->
@@ -1965,6 +1961,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div><div class="section-title">🗺️ Field Management</div><div class="section-sub">Plot layouts, soil health, irrigation zones, and field history</div></div>
         <div class="section-actions"><button class="btn btn-ghost" onclick="openModal('soilTest')">🧪 Order Soil Test</button><button class="btn btn-primary" onclick="openModal('field')">＋ Add Field</button></div>
       </div>
+      </div> 
 
       <div class="g2-1">
         <div>
@@ -2048,6 +2045,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <div class="tbl-wrap">
               <table class="tbl">
                 <thead><tr><th>Field</th><th>Size (ac)</th><th>Crop</th><th>Soil Type</th><th>Irrigation</th><th>pH</th><th>Status</th></tr></thead>
+                <thead><tr><th>Field</th><th>Size (ac)</th><th>Crop</th><th>Soil Type</th><th>Irrigation</th><th>pH</th><th>Moisture</th><th>Action</th></tr></thead>
                 <tbody>
                 </tbody>
               </table>
@@ -2059,13 +2057,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="card">
             <div class="card-header"><div class="card-title">🧪 Soil Health Dashboard</div></div>
             <div class="card-body">
+            <div class="card-body" id="soil-health-dashboard">
               <div class="g2" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
                 <div class="sensor-card"><div class="sensor-val">—</div><div class="sensor-unit">pH</div><div class="sensor-name">Avg Soil pH</div><div class="sensor-trend">No data</div></div>
                 <div class="sensor-card"><div class="sensor-val">—</div><div class="sensor-unit">%</div><div class="sensor-name">Organic Matter</div><div class="sensor-trend">No data</div></div>
                 <div class="sensor-card"><div class="sensor-val">—</div><div class="sensor-unit">ppm</div><div class="sensor-name">Nitrogen (N)</div><div class="sensor-trend">No data</div></div>
                 <div class="sensor-card"><div class="sensor-val">—</div><div class="sensor-unit">ppm</div><div class="sensor-name">Phosphorus (P)</div><div class="sensor-trend">No data</div></div>
+                <div class="sensor-card"><div class="sensor-val" id="sh-ph-val">—</div><div class="sensor-unit">pH</div><div class="sensor-name">Avg Soil pH</div><div class="sensor-trend" id="sh-ph-trend">No data</div></div>
+                <div class="sensor-card"><div class="sensor-val" id="sh-om-val">—</div><div class="sensor-unit">%</div><div class="sensor-name">Organic Matter</div><div class="sensor-trend" id="sh-om-trend">No data</div></div>
+                <div class="sensor-card"><div class="sensor-val" id="sh-n-val">—</div><div class="sensor-unit">ppm</div><div class="sensor-name">Nitrogen (N)</div><div class="sensor-trend" id="sh-n-trend">No data</div></div>
+                <div class="sensor-card"><div class="sensor-val" id="sh-p-val">—</div><div class="sensor-unit">ppm</div><div class="sensor-name">Phosphorus (P)</div><div class="sensor-trend" id="sh-p-trend">No data</div></div>
               </div>
               <div class="alert-strip as-info">🧪 No soil tests recorded yet — use the 'Order Soil Test' button to log one</div>
+              <div class="alert-strip as-info" id="soil-test-alert">🧪 No soil tests recorded yet — use the 'Order Soil Test' button to log one</div>
             </div>
           </div>
           <div class="card">
@@ -2076,6 +2080,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
               
               
               <div class="prog-row"><div class="prog-header"><span class="prog-label">Field 9 (Carrot)</span><span class="prog-pct">70%</span></div><div class="prog-bar"><div class="prog-fill pf-blue" style="width:70%"></div></div></div>
+              <div id="soil-moisture-prog">
+              </div>
             </div>
           </div>
           <div class="card">
@@ -2100,52 +2106,53 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       </div>
 
       <div class="animal-grid" id="animals-grid">
-        </div>
-          <div class="card">
-            <div class="card-header"><div class="card-title">📊 Monthly Production</div></div>
-            <div class="card-body">
-              <div class="stat-row"><span class="stat-key">🥛 Milk (cattle)</span><span class="stat-val mono">~134,400 L</span></div>
-              <div class="stat-row"><span class="stat-key">🥚 Eggs (poultry)</span><span class="stat-val mono">~67,200 units</span></div>
-              <div class="stat-row"><span class="stat-key">🧀 Wool (sheep, last shear)</span><span class="stat-val mono">960 kg</span></div>
-              <div class="stat-row"><span class="stat-key">🐖 Pigs sold (YTD)</span><span class="stat-val mono">48 head</span></div>
-              <div class="stat-row"><span class="stat-key">🐟 Fish (est. July harvest)</span><span class="stat-val mono">~4,800 kg</span></div>
-            </div>
-          </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="card-header"><div class="card-title">📊 Monthly Production</div></div>
+        <div class="card-body" id="monthly-production">
+          <div class="stat-row"><span class="stat-key">🥛 Milk (cattle)</span><span class="stat-val mono">~134,400 L</span></div>
+          <div class="stat-row"><span class="stat-key">🥚 Eggs (poultry)</span><span class="stat-val mono">~67,200 units</span></div>
+          <div class="stat-row"><span class="stat-key">🧀 Wool (sheep, last shear)</span><span class="stat-val mono">960 kg</span></div>
+          <div class="stat-row"><span class="stat-key">🐖 Pigs sold (YTD)</span><span class="stat-val mono">48 head</span></div>
+          <div class="stat-row"><span class="stat-key">🐟 Fish (est. July harvest)</span><span class="stat-val mono">~4,800 kg</span></div>
         </div>
       </div>
     </div>
+      <div class="card" style="margin-top:18px">
+        <div class="card-header">
+          <div class="card-title">💊 Veterinary Schedule</div>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('vet')">＋ Add</button>
+        </div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Animal / Group</th><th>Treatment</th><th>Date</th><th>Vet</th><th>Status</th><th></th></tr></thead>
+          <tbody id="vet-tbody">
+            <tr><td colspan="6" style="text-align:center;color:#bbb;padding:20px">No vet records yet</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
 
     <!-- ===== IRRIGATION ===== -->
     <div class="page" id="page-irrigation">
       <div class="section-header">
         <div><div class="section-title">💧 Irrigation & Soil Sensors</div><div class="section-sub">Zone control, water metering, soil moisture, and scheduling</div></div>
-        <div class="section-actions"><button class="btn btn-ghost">📅 Auto-Schedule</button><button class="btn btn-primary">＋ Add Zone</button></div>
+        <div class="section-actions"><button class="btn btn-ghost" onclick="showToast('Auto-schedule: configure zone timers in zone settings')">📅 Auto-Schedule</button><button class="btn btn-primary" onclick="openModal('zone')">＋ Add Zone</button></div>
       </div>
 
       <div class="sensor-grid">
-        <div class="sensor-card"><div class="sensor-val c-blue">61</div><div class="sensor-unit">% avg</div><div class="sensor-name">Soil Moisture</div><div class="sensor-trend c-amber">Zone 3 low</div></div>
+        <div class="sensor-card"><div class="sensor-val c-blue" id="irrig-moisture">—</div><div class="sensor-unit">% avg</div><div class="sensor-name">Soil Moisture</div><div class="sensor-trend c-amber">Zone 3 low</div></div>
         <div class="sensor-card"><div class="sensor-val c-amber">1,240</div><div class="sensor-unit">L/hr</div><div class="sensor-name">Total Flow Rate</div><div class="sensor-trend c-green">Normal</div></div>
         <div class="sensor-card"><div class="sensor-val c-sage">4.8</div><div class="sensor-unit">bar</div><div class="sensor-name">Water Pressure</div><div class="sensor-trend c-amber">Zone 3 low</div></div>
-        <div class="sensor-card"><div class="sensor-val">3/8</div><div class="sensor-unit">zones</div><div class="sensor-name">Active Now</div><div class="sensor-trend c-green">Running</div></div>
+        <div class="sensor-card"><div class="sensor-val" id="irrig-zones">0/0</div><div class="sensor-unit">zones</div><div class="sensor-name">Active Now</div><div class="sensor-trend c-green">Running</div></div>
       </div>
 
       <div class="g2">
         <div class="card">
           <div class="card-header"><div class="card-title">💧 Irrigation Zones</div><span class="badge bg-green">3 active · 1 fault</span></div>
           <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr><th>Zone</th><th>Field</th><th>Type</th><th>Status</th><th>Soil %</th><th>Last Run</th></tr></thead>
-              <tbody>
-                <tr><td class="fw6">Zone 1</td><td>Field 1–2</td><td>Drip</td><td><span class="badge bg-green">Active</span></td><td class="mono c-sage">72%</td><td class="mono">Today 06:00</td></tr>
-                <tr><td class="fw6">Zone 2</td><td>Field 3</td><td>Sprinkler</td><td><span class="badge bg-green">Active</span></td><td class="mono c-sage">68%</td><td class="mono">Today 06:30</td></tr>
-                <tr><td class="fw6">Zone 3</td><td>Field 4–5</td><td>Flood</td><td><span class="badge bg-red">Low Pressure</span></td><td class="mono c-red">44%</td><td class="mono">Yesterday</td></tr>
-                <tr><td class="fw6">Zone 4</td><td>Field 6</td><td>Drip</td><td><span class="badge bg-green">Active</span></td><td class="mono c-sage">65%</td><td class="mono">Today 07:00</td></tr>
-                <tr><td class="fw6">Zone 5</td><td>Field 7–8</td><td>Flood</td><td><span class="badge bg-gray">Idle</span></td><td class="mono c-blue">80%</td><td class="mono">Mar 22</td></tr>
-                <tr><td class="fw6">Zone 6</td><td>Greenhouse</td><td>Micro-spray</td><td><span class="badge bg-green">Active</span></td><td class="mono c-sage">75%</td><td class="mono">Today 08:00</td></tr>
-                <tr><td class="fw6">Zone 7</td><td>Fish Ponds</td><td>Recirculation</td><td><span class="badge bg-blue">Auto</span></td><td class="mono">—</td><td class="mono">Continuous</td></tr>
-                <tr><td class="fw6">Zone 8</td><td>Field 10</td><td>None</td><td><span class="badge bg-gray">Off (Fallow)</span></td><td class="mono">—</td><td class="mono">—</td></tr>
-              </tbody>
-            </table>
+            <table class="tbl"><thead><tr><th>Zone</th><th>Field</th><th>Type</th><th>Status</th><th>Soil %</th><th>Last Run</th><th></th></tr></thead>
+              <tbody id="zones-tbody"><tr><td colspan="7" style="text-align:center;color:#bbb;padding:22px">No irrigation zones yet — click ＋ Add Zone</td></tr></tbody>
+              </table>
           </div>
         </div>
         <div class="col">
@@ -2187,7 +2194,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <div class="section-header">
         <div><div class="section-title" data-i18n="iot_title">📡 IoT Sensors & Devices</div><div class="section-sub" data-i18n="iot_sub">Live telemetry from soil, weather, irrigation, and livestock sensors across your farm</div></div>
         <div class="section-actions">
-          <button class="btn btn-ghost" onclick="showToast('Sensor config panel coming soon!')">⚙️ Configure</button>
+          <button class="btn btn-ghost" onclick="showToast('Connect your LoRaWAN gateway to configure sensors')">⚙️ Configure</button>
           <button class="btn btn-primary" onclick="refreshSensors()">↻ Refresh All</button>
         </div>
       </div>
@@ -2247,7 +2254,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             </div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="card-title">⚡ Automation Rules</div><button class="btn btn-primary btn-sm" onclick="showToast('Automation editor opening...')">＋ Add Rule</button></div>
+            <div class="card-header"><div class="card-title">⚡ Automation Rules</div><button class="btn btn-primary btn-sm" onclick="showToast('Automation editor: connect IoT gateway to enable rules')">＋ Add Rule</button></div>
             <div class="card-body" style="padding:14px">
               <div class="alert-strip as-success">✅ If soil moisture &lt; 45% → Start Zone 4 irrigation (30 min)</div>
               <div class="alert-strip as-success">✅ If temp &gt; 35°C → Alert farm manager via SMS</div>
@@ -2877,7 +2884,13 @@ function renderCrops() {
 
   // KPIs
   setKPI('kpi-active-crops', crops.length);
-  const harvest = crops.filter(c => daysBetween(new Date(), new Date(c.harvest)) <= 30 && daysBetween(new Date(), new Date(c.harvest)) >= 0).length;
+  const harvest = crops.filter(c => {
+    if (!c.harvest) return false;
+    const date = new Date(c.harvest);
+    if (Number.isNaN(date.getTime())) return false;
+    const d = daysBetween(new Date(), date);
+    return d >= 0 && d <= 30;
+  }).length;
   setKPI('kpi-harvest-soon', harvest);
   setKPI('kpi-acres-planted', crops.reduce((s,c)=>s+Number(c.area||0),0));
   setKPI('kpi-pest-alerts', crops.filter(c=>c.health==='Pest Alert').length);
@@ -2890,6 +2903,80 @@ function deleteCrop(id) {
   DB.set('crops', crops);
   renderCrops();
   showToast('Crop deleted');
+}
+
+// ── Fields page ───────────────────────────────────────────
+function renderFields() {
+  const fields = DB.get('fields') || [];
+  const tbody = $('field-register-tbody');
+  if (!tbody) return;
+
+  // Field Register Table
+  tbody.innerHTML = fields.map(f => `
+    <tr>
+      <td class="fw6">🗺️ ${esc(f.name)}</td>
+      <td class="mono">${f.area}</td>
+      <td>${esc(f.crop || 'Fallow')}</td>
+      <td>${esc(f.soilType)}</td>
+      <td>${esc(f.irrigation)}</td>
+      <td class="mono">${f.pH || '—'}</td>
+      <td class="mono">${f.moisture || '—'}%</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="deleteField('${f.id}')">✕</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">🗺️</div><div class="empty-state-title">No fields yet</div><div class="empty-state-sub">Click ＋ Add Field to start managing your plots</div></div></td></tr>';
+
+  // Soil Health Dashboard
+  const totalpH = fields.reduce((sum, f) => sum + (Number(f.pH) || 0), 0);
+  const avgpH = fields.length > 0 ? (totalpH / fields.length).toFixed(1) : '—';
+  setEl('sh-ph-val', avgpH);
+  setEl('sh-ph-trend', fields.length > 0 ? 'Avg of ' + fields.length + ' fields' : 'No data');
+
+  const totalOM = fields.reduce((sum, f) => sum + (Number(f.organicMatter) || 0), 0);
+  const avgOM = fields.length > 0 ? (totalOM / fields.length).toFixed(1) : '—';
+  setEl('sh-om-val', avgOM);
+  setEl('sh-om-trend', fields.length > 0 ? 'Avg of ' + fields.length + ' fields' : 'No data');
+
+  const totalN = fields.reduce((sum, f) => sum + (Number(f.nitrogen) || 0), 0);
+  const avgN = fields.length > 0 ? (totalN / fields.length).toFixed(0) : '—';
+  setEl('sh-n-val', avgN);
+  setEl('sh-n-trend', fields.length > 0 ? 'Avg of ' + fields.length + ' fields' : 'No data');
+
+  const totalP = fields.reduce((sum, f) => sum + (Number(f.phosphorus) || 0), 0);
+  const avgP = fields.length > 0 ? (totalP / fields.length).toFixed(0) : '—';
+  setEl('sh-p-val', avgP);
+  setEl('sh-p-trend', fields.length > 0 ? 'Avg of ' + fields.length + ' fields' : 'No data');
+
+  const soilTestAlert = $('soil-test-alert');
+  if (soilTestAlert) {
+    soilTestAlert.style.display = fields.length > 0 ? 'none' : 'flex';
+  }
+
+  // Soil Moisture per Field
+  const soilMoistureProg = $('soil-moisture-prog');
+  if (soilMoistureProg) {
+    soilMoistureProg.innerHTML = fields.filter(f => f.moisture).map(f => {
+      const moisture = Number(f.moisture);
+      let colorClass = 'pf-blue';
+      if (moisture < 50) colorClass = 'pf-red';
+      else if (moisture < 70) colorClass = 'pf-amber';
+      return `
+        <div class="prog-row">
+          <div class="prog-header"><span class="prog-label">${esc(f.name)}</span><span class="prog-pct">${moisture}%</span></div>
+          <div class="prog-bar"><div class="prog-fill ${colorClass}" style="width:${moisture}%"></div></div>
+        </div>`;
+    }).join('') || '<div class="empty-state"><div class="empty-state-icon">💧</div><div class="empty-state-sub">No soil moisture data yet</div></div>';
+  }
+
+  // GPS Map: Note - dynamic SVG generation is complex. For now, this remains static.
+  // Future enhancement: dynamically generate <polygon> and <text> elements based on field data.
+}
+
+function deleteField(id) {
+  if (!confirm('Delete this field record?')) return;
+  DB.set('fields', (DB.get('fields')||[]).filter(f=>f.id!==id));
+  renderFields();
+  showToast('Field deleted');
 }
 
 // ── Animals page ──────────────────────────────────────────
@@ -2919,8 +3006,33 @@ function renderAnimals() {
 
   // Total head count
   const total = animals.reduce((s,a)=>s+Number(a.count||0),0);
+  setKPI('kpi-livestock', total.toLocaleString());
   setKPI('kpi-animal-total', total.toLocaleString());
 }
+  // Update monthly production card
+  const prodCard = $('monthly-production');
+  if (prodCard) {
+    const cattle  = animals.find(a=>a.type==='Cattle')  || {};
+    const poultry = animals.find(a=>a.type==='Poultry') || {};
+    const pigs    = animals.find(a=>a.type==='Pigs')    || {};
+    const sheep   = animals.find(a=>a.type==='Sheep')   || {};
+    const fish    = animals.find(a=>a.type==='Fish')    || {};
+    const milkL   = cattle.count  ? (Number(cattle.count)  * 18).toLocaleString() + ' L/day' : '—';
+    const eggs    = poultry.count ? (Math.round(Number(poultry.count)*0.8)).toLocaleString() + '/day' : '—';
+    const pigsSold= pigs.count    ? Number(pigs.count) + ' head' : '—';
+    const wool    = sheep.count   ? (Number(sheep.count)*8).toLocaleString() + ' kg/shear' : '—';
+    const fishHarv= fish.count    ? (Math.round(Number(fish.count)*0.9)).toLocaleString() + ' kg' : '—';
+    prodCard.innerHTML = \`
+      <div class="stat-row"><span class="stat-key">🥛 Milk (cattle/day)</span><span class="stat-val mono">\${milkL}</span></div>
+      <div class="stat-row"><span class="stat-key">🥚 Eggs (poultry/day)</span><span class="stat-val mono">\${eggs}</span></div>
+      <div class="stat-row"><span class="stat-key">🐖 Pigs sold (YTD)</span><span class="stat-val mono">\${pigsSold}</span></div>
+      <div class="stat-row"><span class="stat-key">🐑 Wool (last shear)</span><span class="stat-val mono">\${wool}</span></div>
+      <div class="stat-row"><span class="stat-key">🐟 Fish (est. harvest)</span><span class="stat-val mono">\${fishHarv}</span></div>
+    \`;
+  }
+}
+
+
 
 function deleteAnimal(id) {
   if (!confirm('Remove this animal group?')) return;
@@ -3377,6 +3489,20 @@ function saveRecord(form) {
   closeModal(); renderRecords(); showToast('✅ Record saved!');
 }
 
+function saveField(form) {
+  const d = formToObj(form);
+  if (!d['field-name']) { showToast('⚠ Field name required'); return; }
+  const fields = DB.get('fields') || [];
+  fields.push({
+    id:uid(), name:d['field-name'], area:Number(d['field-area'])||0,
+    soilType:d['field-soilType']||'', irrigation:d['field-irrigation']||'',
+    lat:d['field-lat']||'', lon:d['field-lon']||'',
+    crop:'Fallow', pH:'', organicMatter:'', nitrogen:'', phosphorus:'', moisture:''
+  });
+  DB.set('fields', fields);
+  closeModal(); renderFields(); showToast('🗺️ Field added!');
+}
+
 // Helper: collect all named inputs from a form container
 function formToObj(form) {
   const d = {};
@@ -3422,15 +3548,41 @@ const pageTitles = {
 };
 let iotInitialized = false, gpsInitialized = false;
 
+function renderIoT() {
+  if (!iotInitialized) {
+    initIoT();
+    iotInitialized = true;
+  } else {
+    refreshSensors();
+  }
+}
+
+function renderSecurity() {
+  const cams = Array.from(document.querySelectorAll('.cam-feed'));
+  const offlineCount = cams.filter(c => c.classList.contains('offline')).length;
+  const totalCount = cams.length;
+  setKPI('kpi-alerts', offlineCount);
+  const camBadge = document.querySelector('.nav-item[onclick*=security] .nav-badge');
+  if (camBadge) camBadge.textContent = offlineCount + ' offline';
+  const camTS = document.getElementById('camTime');
+  if (camTS) camTS.textContent = new Date().toLocaleTimeString();
+}
+
 const pageRenderMap = {
   dashboard: renderDashboard,
+  weather:   () => {},
   crops:     renderCrops,
+  fields:    renderFields,
   animals:   () => { renderAnimals(); renderVetRecords(); },
+  irrigation:() => { renderZones(); },
+  iot:       renderIoT,
   inventory: renderInventory,
   equipment: () => { renderEquipment(); renderMaintenance(); },
   workers:   renderWorkers,
   finance:   () => { renderFinance(); renderFinanceSummary(); },
   records:   renderRecords,
+  reports:   renderReports,
+  security:  renderSecurity,
   alerts:    renderAlerts,
   settings:  renderSettings,
 };
@@ -3626,7 +3778,7 @@ const translations = {
   ar:{add_record:'＋ إضافة',save:'حفظ',cancel:'إلغاء',field_tip:'معلومات الحقل',sensors_refreshed:'تم تحديث المستشعرات!',lang_name:'العربية'},
   hi:{add_record:'＋ जोड़ें',save:'सहेजें',cancel:'रद्द',field_tip:'खेत जानकारी',sensors_refreshed:'सेंसर अपडेट!',lang_name:'हिन्दी'},
 };
-let currentLang = DB.get('profile')?.language || 'en';
+let currentLang = 'en';
 function i18n(key){ return (translations[currentLang]||translations.en)[key]||key; }
 function switchLang(lang){
   currentLang=lang;
@@ -3740,9 +3892,13 @@ const modalForms = {
     <div class="form-row"><div class="form-group"><label class="form-label">Soil Type</label><select class="form-select"><option>Clay Loam</option><option>Sandy Loam</option><option>Loam</option><option>Clay</option><option>Alluvial</option></select></div><div class="form-group"><label class="form-label">Irrigation</label><select class="form-select"><option>Drip</option><option>Sprinkler</option><option>Flood</option><option>Rainfed</option><option>None</option></select></div></div>
     <div class="form-row"><div class="form-group"><label class="form-label">GPS Lat</label><input class="form-input" placeholder="-0.30"></div><div class="form-group"><label class="form-label">GPS Lon</label><input class="form-input" placeholder="36.08"></div></div>
     <div class="modal-footer"><button class="btn btn-primary w100" onclick="showToast('Field saved! GPS map will update on next load.');closeModal()">🗺️ Add Field</button><button class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>` },
+    <div class="form-row"><div class="form-group"><label class="form-label">Field Name</label><input class="form-input" id="field-name" placeholder="e.g. Field 12"></div><div class="form-group"><label class="form-label">Area (acres)</label><input type="number" class="form-input" id="field-area" placeholder="0"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Soil Type</label><select class="form-select" id="field-soilType"><option>Clay Loam</option><option>Sandy Loam</option><option>Loam</option><option>Clay</option><option>Alluvial</option></select></div><div class="form-group"><label class="form-label">Irrigation</label><select class="form-select" id="field-irrigation"><option>Drip</option><option>Sprinkler</option><option>Flood</option><option>Rainfed</option><option>None</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">GPS Lat</label><input type="number" step="0.000001" class="form-input" id="field-lat" placeholder="-0.30"></div><div class="form-group"><label class="form-label">GPS Lon</label><input type="number" step="0.000001" class="form-input" id="field-lon" placeholder="36.08"></div></div>` },
 };
 
 function openModal(type='record', id, prefill) {
+  photoStore = []; // Clear photoStore on modal open
   const cfg = modalForms[type] || modalForms.record;
   $('modalTitle').textContent = cfg.title;
   $('modalBody').innerHTML = (typeof cfg.html==='function'?cfg.html():cfg.html) +
@@ -4025,11 +4181,11 @@ function enterApp(user) {
   // New users get a clean empty farm — no demo data ever seeded
   renderDashboard();
   renderAlerts();
+  // Update topbar with farm name from profile
+  const _p = DB.get('profile');
   // Update welcome banner with farm name
   const _wb = document.getElementById('welcome-farm-name');
   if (_wb && _p && _p.farmName) _wb.textContent = 'Welcome, ' + _p.farmName + '!';
-  // Update topbar with farm name from profile
-  const _p = DB.get('profile');
   if (_p && _p.farmName) {
     const pt = document.getElementById('page-title');
     const pb = document.getElementById('page-breadcrumb');
@@ -4246,11 +4402,7 @@ function saveSoilTest(form) {
 // Wire "＋ Create Alert Rule" button via data attribute approach
 function openAlertRuleModal() { openModal('alertRule'); }
 
-// ── Language Switcher (topbar) ────────────────────────────
-(function wireLangSwitcher() {
-  const ls = document.getElementById('langSwitcher');
-  if (ls) ls.addEventListener('change', function() { switchLang(this.value); });
-})();
+// langSwitcher wired via onchange attribute in HTML
 
 
 
@@ -4262,6 +4414,71 @@ document.addEventListener('keydown', e => {
   if (loginVisible) doLogin(); else doSignup();
 });
 
+
+// ── renderZones (Irrigation page) ─────────────────────────────
+function renderZones() {
+  const zones = DB.get('zones') || [];
+  const tb = $('zones-tbody');
+  if (!tb) return;
+  if (!zones.length) {
+    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#bbb;padding:22px">No irrigation zones yet — click ＋ Add Zone</td></tr>';
+    setEl('irrig-zones', '0/0');
+    setEl('irrig-moisture', '—');
+    return;
+  }
+  const sb = s => s==='Active'?'bg-green':s==='Idle'?'bg-gray':'bg-red';
+  const mClass = m => Number(m)<50?'c-red':'c-sage';
+  tb.innerHTML = zones.map(z => `
+    <tr>
+      <td class="fw6">${esc(z.name)}</td>
+      <td>${esc(z.field||'—')}</td>
+      <td><span class="badge bg-blue">${esc(z.type)}</span></td>
+      <td><span class="badge ${sb(z.status)}">${esc(z.status)}</span></td>
+      <td class="mono ${mClass(z.moisture)}">${z.moisture||0}%${Number(z.moisture||0)<50?' ⚠':''}</td>
+      <td class="mono">${z.lastRun||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteZone('${z.id}')">✕</button></td>
+    </tr>`).join('');
+  const active = zones.filter(z=>z.status==='Active').length;
+  setEl('irrig-zones', active+'/'+zones.length);
+  const avg = zones.length ? Math.round(zones.reduce((s,z)=>s+Number(z.moisture||0),0)/zones.length) : 0;
+  setEl('irrig-moisture', avg+'%');
+}
+
+function deleteZone(id) {
+  if (!confirm('Delete this irrigation zone?')) return;
+  DB.set('zones', (DB.get('zones')||[]).filter(z=>z.id!==id));
+  renderZones();
+  showToast('Zone deleted');
+}
+
+function saveZone(form) {
+  const name    = $('zone-name')?.value.trim();
+  const field   = $('zone-field')?.value.trim();
+  const type    = $('zone-type')?.value || 'Drip';
+  const moisture= Number($('zone-moisture')?.value) || 0;
+  const status  = $('zone-status')?.value || 'Active';
+  if (!name) { showToast('⚠ Zone name is required'); return; }
+  const zones = DB.get('zones') || [];
+  zones.push({ id:uid(), name, field:field||'', type, moisture, status, lastRun:'—' });
+  DB.set('zones', zones);
+  closeModal();
+  renderZones();
+  showToast('💧 Irrigation zone added!');
+}
+
+
+// ── Irrigation Zone Modal ─────────────────────────────────────
+modalForms['zone'] = { title: '💧 Add Irrigation Zone', save: 'saveZone', html: `
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Zone Name *</label><input class="form-input" id="zone-name" placeholder="e.g. Zone 4"></div>
+    <div class="form-group"><label class="form-label">Field(s)</label><input class="form-input" id="zone-field" placeholder="e.g. Field 1–2"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Irrigation Type</label><select class="form-select" id="zone-type"><option>Drip</option><option>Sprinkler</option><option>Flood</option><option>Micro-spray</option><option>Rainfed</option></select></div>
+    <div class="form-group"><label class="form-label">Soil Moisture (%)</label><input type="number" class="form-input" id="zone-moisture" min="0" max="100" value="65"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="zone-status"><option>Active</option><option>Idle</option><option>Maintenance</option></select></div>` };
+
 // ══════════════════════════════════════════════════════════
 //  INIT — auth-aware, no global demo data
 // ══════════════════════════════════════════════════════════
@@ -4269,6 +4486,7 @@ const _today = new Date().toISOString().split('T')[0];
 
 (function initApp() {
   // Purge any old pre-auth global demo data (keys not scoped to a user)
+  // Purge any old pre-auth global demo data (keys not scoped to a user) and initialize user-scoped DB
   const oldDemoKeys = ['crops','animals','vetRecords','inventory','equipment','maintenance',
     'workers','tasks','finances','records','alerts','profile','settings','seeded'];
   oldDemoKeys.forEach(k => {
@@ -4283,6 +4501,7 @@ const _today = new Date().toISOString().split('T')[0];
     enterApp(user);
   } else {
     // No session — show auth screen
+    // No session — show auth screen and ensure DB is bound to a default empty state if no user
     showAuthScreen();
   }
 })();
